@@ -1,0 +1,91 @@
+// Zvizzer — Calculadora de Eficiência de Polimento
+// Dev local: SQLite (sem dependência externa). Produção: trocar o datasource
+// para "postgresql" e apontar DATABASE_URL para o projeto Supabase — o schema
+// abaixo foi desenhado para migrar sem alterações estruturais (sem tipos
+// específicos de SQLite; valores monetários em Float, compatível com ambos).
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model AdminUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String?
+  createdAt    DateTime @default(now())
+}
+
+/// Parâmetros do "processo padrão Zvizzer", editáveis apenas pelo admin.
+/// Singleton: sempre um único registro com id = "default".
+model ZvizzerSettings {
+  id                     String   @id @default("default")
+  compostoPreco          Float // preço da embalagem do composto (R$)
+  compostoPesoG          Float // peso da embalagem (g)
+  compostoConsumoG       Float // consumo médio por carro (g)
+  boinaPreco             Float // preço de cada boina (R$)
+  boinaQuantidade        Float // qtd de boinas em revezamento
+  boinaDurabilidadeCarros Float // carros atendidos antes da troca
+  tempoProcessoMinutos   Float // tempo médio do processo Zvizzer (min)
+  updatedAt              DateTime @updatedAt
+  updatedBy              String?
+}
+
+/// Parâmetros de encargos/provisões trabalhistas usados no custo de colaborador.
+/// Singleton: sempre um único registro com id = "default". Percentuais em
+/// fração decimal (ex.: 0.08 = 8%), nunca hardcoded no client.
+model LaborSettings {
+  id                    String   @id @default("default")
+  encargosPatronaisPct  Float
+  fgtsPct               Float
+  decimoTerceiroPct     Float
+  feriasPct             Float
+  adicionalFeriasPct    Float
+  outrosEncargosPct     Float
+  updatedAt             DateTime @updatedAt
+}
+
+model Reseller {
+  id        String   @id @default(cuid())
+  nome      String
+  cidade    String
+  estado    String // sigla UF (ex.: SP, RJ)
+  whatsapp  String // formato E.164 sem símbolos, ex.: 5511999999999
+  ativo     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  clicks AnalyticsEvent[]
+
+  @@index([estado, cidade])
+}
+
+/// Uma "sessão" anônima de uso da calculadora (sem login, sem PII).
+model AnalyticsSession {
+  sessionId           String   @id
+  createdAt           DateTime @default(now())
+  completedCalculation Boolean @default(false)
+  whatsappClicked     Boolean @default(false)
+
+  events AnalyticsEvent[]
+}
+
+model AnalyticsEvent {
+  id         String   @id @default(cuid())
+  sessionId  String
+  session    AnalyticsSession @relation(fields: [sessionId], references: [sessionId], onDelete: Cascade)
+  eventName  String
+  step       Int?
+  resellerId String?
+  reseller   Reseller? @relation(fields: [resellerId], references: [id])
+  estado     String?
+  cidade     String?
+  timestamp  DateTime @default(now())
+
+  @@index([eventName])
+  @@index([sessionId])
+}
