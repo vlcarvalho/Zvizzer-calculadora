@@ -41,7 +41,8 @@ export function Wizard() {
   function validarEtapaAtual(): boolean {
     let errosEtapa: ErrosCampo = {};
     if (store.etapa === 1) errosEtapa = validarEtapaVolume(store.volumePreco);
-    if (store.etapa === 2) errosEtapa = validarEtapaMaoDeObra(store.membros);
+    if (store.etapa === 2)
+      errosEtapa = validarEtapaMaoDeObra(store.membros, store.numeroPessoasEmpresa);
     if (store.etapa === 3) errosEtapa = validarEtapaCompostos(store.compostos);
     if (store.etapa === 4) errosEtapa = validarEtapaBoinas(store.boinas);
 

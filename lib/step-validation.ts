@@ -2,6 +2,7 @@ import {
   boinaSchema,
   compostoSchema,
   membroSchema,
+  numeroPessoasEmpresaSchema,
   volumePrecoSchema,
 } from "@/lib/validation";
 import type { BoinaInput, CompostoInput, MembroInput } from "@/lib/calculations";
@@ -29,10 +30,20 @@ export function validarEtapaVolume(volumePreco: VolumePrecoState): ErrosCampo {
   return coletarErros(result);
 }
 
-export function validarEtapaMaoDeObra(membros: MembroInput[]): ErrosCampo {
+export function validarEtapaMaoDeObra(
+  membros: MembroInput[],
+  numeroPessoasEmpresa?: number
+): ErrosCampo {
   for (const membro of membros) {
     const result = membroSchema.safeParse(membro);
     if (!result.success) return coletarErros(result);
+
+    if (membro.papel === "empresa") {
+      const resultPessoas = numeroPessoasEmpresaSchema.safeParse(numeroPessoasEmpresa);
+      if (!resultPessoas.success) {
+        return { numeroPessoasEmpresa: resultPessoas.error.issues[0]?.message ?? "Campo inválido." };
+      }
+    }
   }
   return {};
 }

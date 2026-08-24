@@ -4,7 +4,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { BoinaInput, CompostoInput, MembroInput } from "@/lib/calculations";
 
-export type TipoMaoDeObra = "proprietario" | "colaborador" | "equipe";
+export type TipoMaoDeObra = "proprietario" | "colaborador" | "equipe" | "empresa";
 
 export interface VolumePrecoState {
   polimentosMes: number;
@@ -19,6 +19,10 @@ interface CalculatorState {
   volumePreco: VolumePrecoState;
   tipoMaoDeObra: TipoMaoDeObra;
   membros: MembroInput[];
+  /** Só usado no modo "empresa": quantas pessoas atuam na etapa de
+   * polimento — o custo é único (custo fixo), mas esse número ainda é
+   * necessário para dividir o tempo do processo Zvizzer proporcionalmente. */
+  numeroPessoasEmpresa: number;
   compostos: CompostoInput[];
   boinas: BoinaInput[];
 
@@ -31,6 +35,7 @@ interface CalculatorState {
   setMembro: (index: number, membro: MembroInput) => void;
   adicionarMembro: () => void;
   removerMembro: (index: number) => void;
+  setNumeroPessoasEmpresa: (n: number) => void;
 
   adicionarComposto: () => void;
   atualizarComposto: (index: number, patch: Partial<CompostoInput>) => void;
@@ -66,6 +71,7 @@ const estadoInicial = {
   volumePreco: { polimentosMes: 0, precoMedioPolimento: 0, horas: 0 },
   tipoMaoDeObra: "proprietario" as TipoMaoDeObra,
   membros: [membroProprietarioPadrao],
+  numeroPessoasEmpresa: 0,
   compostos: [compostoPadrao],
   boinas: [boinaPadrao],
 };
@@ -95,6 +101,12 @@ export const useCalculatorStore = create<CalculatorState>()(
               ],
             };
           }
+          if (tipo === "empresa") {
+            return {
+              tipoMaoDeObra: tipo,
+              membros: [{ papel: "empresa", custoFixoMensal: 0 }],
+            };
+          }
           return {
             tipoMaoDeObra: tipo,
             membros: [membroProprietarioPadrao],
@@ -118,6 +130,8 @@ export const useCalculatorStore = create<CalculatorState>()(
 
       removerMembro: (index) =>
         set((s) => ({ membros: s.membros.filter((_, i) => i !== index) })),
+
+      setNumeroPessoasEmpresa: (n) => set({ numeroPessoasEmpresa: n }),
 
       adicionarComposto: () =>
         set((s) => ({ compostos: [...s.compostos, { ...compostoPadrao }] })),

@@ -23,6 +23,7 @@ interface LaborSettings {
   feriasPct: number;
   adicionalFeriasPct: number;
   outrosEncargosPct: number;
+  horasBaseMensalEmpresa: number;
 }
 
 export default function AdminParametrosPage() {
@@ -167,6 +168,21 @@ export default function AdminParametrosPage() {
             value={labor.outrosEncargosPct}
             step={0.001}
             onChange={(v) => setLabor({ ...labor, outrosEncargosPct: v })}
+          />
+        </div>
+      </section>
+
+      <section className="flex flex-col gap-4">
+        <h2 className="text-lg font-bold">Cenário &quot;Empresa com vários funcionários&quot;</h2>
+        <p className="text-xs text-muted">
+          Nesse cenário o custo-hora não soma salário por salário: é o custo fixo mensal que o
+          cliente informar, dividido por esta referência de horas/mês.
+        </p>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <NumeroField
+            label="Horas/mês de referência"
+            value={labor.horasBaseMensalEmpresa}
+            onChange={(v) => setLabor({ ...labor, horasBaseMensalEmpresa: v })}
           />
         </div>
       </section>

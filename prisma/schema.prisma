@@ -48,6 +48,10 @@ model LaborSettings {
   feriasPct             Float
   adicionalFeriasPct    Float
   outrosEncargosPct     Float
+  /// Divisor de horas/mês para o cenário "Empresa com vários funcionários"
+  /// (custo_hora = custo_fixo_mensal / horasBaseMensalEmpresa). Referência
+  /// padrão de mercado: 220h/mês.
+  horasBaseMensalEmpresa Float   @default(220)
   updatedAt             DateTime @updatedAt
 }
 

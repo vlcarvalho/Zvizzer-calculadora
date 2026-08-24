@@ -41,11 +41,23 @@ export const colaboradorSchema = z.object({
     .positive({ message: "Informe a jornada semanal." }),
 });
 
+export const empresaSchema = z.object({
+  papel: z.literal("empresa"),
+  custoFixoMensal: z
+    .number({ message: "Informe o custo fixo mensal da empresa." })
+    .positive({ message: "Informe o custo fixo mensal da empresa." }),
+});
+
 export const membroSchema = z.discriminatedUnion("papel", [
   proprietarioSchema,
   colaboradorSchema,
+  empresaSchema,
 ]);
 export type MembroFormInput = z.infer<typeof membroSchema>;
+
+export const numeroPessoasEmpresaSchema = z
+  .number({ message: "Informe quantas pessoas trabalham na etapa de polimento." })
+  .positive({ message: "Informe quantas pessoas trabalham na etapa de polimento." });
 
 export const compostoSchema = z.object({
   nome: z.string().optional(),
@@ -108,6 +120,7 @@ export const laborSettingsSchema = z.object({
   feriasPct: z.number().min(0),
   adicionalFeriasPct: z.number().min(0),
   outrosEncargosPct: z.number().min(0),
+  horasBaseMensalEmpresa: z.number().positive(),
 });
 
 export const loginSchema = z.object({

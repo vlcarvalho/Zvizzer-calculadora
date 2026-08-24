@@ -29,7 +29,51 @@ export function Resultado({
 
   return (
     <div className="flex flex-col gap-8">
-      {/* SEU POTENCIAL */}
+      <div>
+        <h2 className="text-center text-2xl font-bold">Como chegamos nesse resultado</h2>
+        <p className="mt-1 text-center text-sm text-muted">
+          Antes do número final, veja os produtos e o raciocínio por trás da economia.
+        </p>
+      </div>
+
+      {/* 1. Produtos utilizados + premissas de valor, 2. "por que é menor" */}
+      <ComparativoProdutos
+        compostosUsuario={compostosUsuario}
+        boinasUsuario={boinasUsuario}
+        zvizzer={zvizzerSettings}
+      />
+
+      {/* 3. Comparativo visual (custo/tempo/mensal lado a lado) */}
+      <div>
+        <h3 className="mb-4 text-center text-sm font-semibold uppercase tracking-widest text-muted">
+          Comparativo
+        </h3>
+        <div className="relative grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <CardComparativo
+            titulo="Seu processo atual"
+            custoPorPolimento={resultado.custoOperacionalAtual}
+            tempo={resultado.horasAtuais}
+            custoMensal={resultado.custoOperacionalMensalAtual}
+          />
+          <div className="pointer-events-none absolute left-1/2 top-1/2 z-10 hidden -translate-x-1/2 -translate-y-1/2 rounded-full border border-border bg-background px-3 py-1 text-xs font-bold text-muted sm:block">
+            VS
+          </div>
+          <CardComparativo
+            titulo="Processo Zvizzer"
+            custoPorPolimento={resultado.custoOperacionalZvizzer}
+            tempo={resultado.horasZvizzer}
+            custoMensal={resultado.custoOperacionalMensalZvizzer}
+            nota={
+              resultado.numeroPessoas > 1
+                ? `Tempo dividido entre ${resultado.numeroPessoas} pessoas trabalhando juntas`
+                : undefined
+            }
+            destaque
+          />
+        </div>
+      </div>
+
+      {/* 4. Seu potencial — o resumo final, por último */}
       <div className="rounded-3xl border border-accent/30 bg-gradient-to-b from-accent/10 to-transparent p-6 text-center">
         <p className="text-sm font-semibold uppercase tracking-widest text-accent">
           Seu potencial
@@ -69,42 +113,6 @@ export function Resultado({
           </p>
         )}
       </div>
-
-      {/* Comparativo visual */}
-      <div>
-        <h3 className="mb-4 text-center text-sm font-semibold uppercase tracking-widest text-muted">
-          Comparativo
-        </h3>
-        <div className="relative grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <CardComparativo
-            titulo="Seu processo atual"
-            custoPorPolimento={resultado.custoOperacionalAtual}
-            tempo={resultado.horasAtuais}
-            custoMensal={resultado.custoOperacionalMensalAtual}
-          />
-          <div className="pointer-events-none absolute left-1/2 top-1/2 z-10 hidden -translate-x-1/2 -translate-y-1/2 rounded-full border border-border bg-background px-3 py-1 text-xs font-bold text-muted sm:block">
-            VS
-          </div>
-          <CardComparativo
-            titulo="Processo Zvizzer"
-            custoPorPolimento={resultado.custoOperacionalZvizzer}
-            tempo={resultado.horasZvizzer}
-            custoMensal={resultado.custoOperacionalMensalZvizzer}
-            nota={
-              resultado.numeroPessoas > 1
-                ? `Tempo dividido entre ${resultado.numeroPessoas} pessoas trabalhando juntas`
-                : undefined
-            }
-            destaque
-          />
-        </div>
-      </div>
-
-      <ComparativoProdutos
-        compostosUsuario={compostosUsuario}
-        boinasUsuario={boinasUsuario}
-        zvizzer={zvizzerSettings}
-      />
 
       <p className="text-center text-xs leading-relaxed text-muted">
         As horas liberadas podem ser utilizadas para novos polimentos, outros serviços,

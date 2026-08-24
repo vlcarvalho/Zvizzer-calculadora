@@ -15,7 +15,7 @@
 // Tipos de entrada
 // ---------------------------------------------------------------------------
 
-export type PapelMaoDeObra = "proprietario" | "colaborador";
+export type PapelMaoDeObra = "proprietario" | "colaborador" | "empresa";
 
 export interface ProprietarioInput {
   papel: "proprietario";
@@ -30,7 +30,15 @@ export interface ColaboradorInput {
   horasSemanais: number;
 }
 
-export type MembroInput = ProprietarioInput | ColaboradorInput;
+/** Cenário "Empresa com vários funcionários": em vez de somar salário por
+ * salário, usa o custo fixo mensal total da operação dividido por uma
+ * referência de horas/mês (spec do cliente: 220h — configurável no admin). */
+export interface EmpresaInput {
+  papel: "empresa";
+  custoFixoMensal: number; // R$/mês
+}
+
+export type MembroInput = ProprietarioInput | ColaboradorInput | EmpresaInput;
 
 export interface LaborParams {
   encargosPatronaisPct: number;
@@ -39,6 +47,7 @@ export interface LaborParams {
   feriasPct: number;
   adicionalFeriasPct: number;
   outrosEncargosPct: number;
+  horasBaseMensalEmpresa: number;
 }
 
 export interface CompostoInput {
@@ -69,9 +78,15 @@ export interface CalculatorInput {
   polimentosMes: number;
   precoMedioPolimento: number;
   horasAtuais: number; // horas decimais (ex.: 5.5 = 5h30)
-  equipe: MembroInput[]; // 1 membro = proprietário ou colaborador único; >1 = modo equipe
+  equipe: MembroInput[]; // 1 membro = proprietário/colaborador/empresa único; >1 = modo equipe
   compostos: CompostoInput[];
   boinas: BoinaInput[];
+  /** Número de pessoas trabalhando juntas na etapa de polimento — usado para
+   * dividir proporcionalmente o tempo do processo Zvizzer. Por padrão é
+   * `equipe.length`; informe explicitamente quando o custo é único mas a
+   * operação tem mais gente (ex.: cenário "empresa com vários
+   * funcionários", onde o custo fixo não é decomposto pessoa a pessoa). */
+  numeroPessoasPolimento?: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -119,10 +134,17 @@ export function custoHoraColaborador(
   return custoMensalColaborador(membro, labor) / horas;
 }
 
+/** Custo fixo mensal da operação dividido pela referência de horas/mês
+ * configurada no admin (spec do cliente: 220h por padrão). */
+export function custoHoraEmpresa(membro: EmpresaInput, labor: LaborParams): number {
+  if (labor.horasBaseMensalEmpresa <= 0) return 0;
+  return membro.custoFixoMensal / labor.horasBaseMensalEmpresa;
+}
+
 export function custoHoraMembro(membro: MembroInput, labor: LaborParams): number {
-  return membro.papel === "proprietario"
-    ? custoHoraProprietario(membro)
-    : custoHoraColaborador(membro, labor);
+  if (membro.papel === "proprietario") return custoHoraProprietario(membro);
+  if (membro.papel === "colaborador") return custoHoraColaborador(membro, labor);
+  return custoHoraEmpresa(membro, labor);
 }
 
 /**
@@ -240,7 +262,10 @@ export function calcular(
   // 1 pessoa sozinha; com mais gente trabalhando ao mesmo tempo no mesmo
   // carro, o tempo de parede diminui proporcionalmente (ajuste pedido pela
   // Zvizzer: 2 pessoas ≈ metade do tempo, 3 pessoas ≈ um terço, etc.).
-  const numeroPessoas = Math.max(1, input.equipe.length);
+  // Por padrão é o tamanho da equipe; o cenário "empresa" informa esse
+  // número explicitamente, já que o custo ali não é decomposto pessoa a
+  // pessoa (ver `numeroPessoasPolimento` em CalculatorInput).
+  const numeroPessoas = Math.max(1, input.numeroPessoasPolimento ?? input.equipe.length);
   const horasZvizzer = zvizzer.tempoProcessoMinutos / 60 / numeroPessoas;
 
   // --- Cenário atual ---

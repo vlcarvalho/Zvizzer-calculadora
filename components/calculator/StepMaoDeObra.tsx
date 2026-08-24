@@ -12,6 +12,7 @@ const OPCOES: { valor: TipoMaoDeObra; label: string }[] = [
   { valor: "proprietario", label: "Eu mesmo, proprietário" },
   { valor: "colaborador", label: "Um colaborador" },
   { valor: "equipe", label: "Eu e minha equipe" },
+  { valor: "empresa", label: "Empresa com vários funcionários" },
 ];
 
 interface StepMaoDeObraProps {
@@ -26,6 +27,8 @@ export function StepMaoDeObra({ erros }: StepMaoDeObraProps) {
     setMembro,
     adicionarMembro,
     removerMembro,
+    numeroPessoasEmpresa,
+    setNumeroPessoasEmpresa,
   } = useCalculatorStore();
 
   return (
@@ -52,6 +55,21 @@ export function StepMaoDeObra({ erros }: StepMaoDeObraProps) {
           </button>
         ))}
       </div>
+
+      {tipoMaoDeObra === "empresa" && (
+        <Field
+          label="Quantas pessoas trabalham na etapa de polimento, em média?"
+          hint="Usado só para dividir o tempo do processo Zvizzer entre a equipe — o custo já vem do valor fixo abaixo."
+          error={erros.numeroPessoasEmpresa}
+        >
+          <NumericInput
+            value={numeroPessoasEmpresa || ""}
+            onChange={setNumeroPessoasEmpresa}
+            placeholder="Ex.: 4"
+            suffix="pessoas"
+          />
+        </Field>
+      )}
 
       {tipoMaoDeObra !== "equipe" ? (
         <MembroCampos
@@ -160,6 +178,21 @@ function MembroCampos({
           />
         </Field>
       </div>
+    );
+  }
+
+  if (membro.papel === "empresa") {
+    return (
+      <Field
+        label="Qual o custo fixo mensal da operação?"
+        hint="Some tudo: folha, aluguel, insumos fixos etc."
+        error={erros.custoFixoMensal}
+      >
+        <CurrencyInput
+          value={membro.custoFixoMensal}
+          onChange={(v) => onChange({ ...membro, custoFixoMensal: v })}
+        />
+      </Field>
     );
   }
 

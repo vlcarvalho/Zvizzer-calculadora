@@ -5,6 +5,7 @@ import {
   custoCompostoCarro,
   custoHoraColaborador,
   custoHoraEfetivo,
+  custoHoraEmpresa,
   custoHoraProprietario,
   horasMensais,
   valorVendaHora,
@@ -21,6 +22,7 @@ const labor: LaborParams = {
   feriasPct: 0.0833,
   adicionalFeriasPct: 0.0278,
   outrosEncargosPct: 0,
+  horasBaseMensalEmpresa: 220,
 };
 
 const zvizzer: ZvizzerParams = {
@@ -243,5 +245,60 @@ describe("calcular() — cenário completo", () => {
     expect(umaPessoa.horasZvizzer).toBeCloseTo(3, 5);
     expect(duasPessoas.horasZvizzer).toBeCloseTo(1.5, 5); // metade
     expect(tresPessoas.horasZvizzer).toBeCloseTo(1, 5); // um terço
+  });
+});
+
+describe("cenário 'empresa com vários funcionários'", () => {
+  it("custo-hora = custo fixo mensal / horas base configuradas no admin", () => {
+    const custo = custoHoraEmpresa({ papel: "empresa", custoFixoMensal: 20000 }, labor);
+    expect(custo).toBeCloseTo(20000 / 220, 5); // ≈ R$90,91/h
+  });
+
+  it("retorna 0 em vez de dividir por zero se a referência de horas for 0", () => {
+    const custo = custoHoraEmpresa(
+      { papel: "empresa", custoFixoMensal: 20000 },
+      { ...labor, horasBaseMensalEmpresa: 0 }
+    );
+    expect(custo).toBe(0);
+  });
+
+  it("numeroPessoasPolimento informado explicitamente substitui equipe.length no tempo Zvizzer", () => {
+    const resultado = calcular(
+      {
+        polimentosMes: 30,
+        precoMedioPolimento: 1000,
+        horasAtuais: 4,
+        equipe: [{ papel: "empresa", custoFixoMensal: 20000 }],
+        numeroPessoasPolimento: 4, // "empresa" não decompõe pessoa a pessoa
+        compostos: [],
+        boinas: [],
+      },
+      zvizzer,
+      labor
+    );
+
+    expect(resultado.numeroPessoas).toBe(4);
+    // tempoProcessoMinutos = 180min = 3h; com 4 pessoas, 3h/4 = 0,75h.
+    expect(resultado.horasZvizzer).toBeCloseTo(0.75, 5);
+    const custoHoraEsperado = custoHoraEmpresa({ papel: "empresa", custoFixoMensal: 20000 }, labor);
+    expect(resultado.custoMaoDeObraZvizzer).toBeCloseTo(custoHoraEsperado * 0.75, 5);
+  });
+
+  it("sem numeroPessoasPolimento, cai de volta para equipe.length (1, no modo empresa)", () => {
+    const resultado = calcular(
+      {
+        polimentosMes: 30,
+        precoMedioPolimento: 1000,
+        horasAtuais: 4,
+        equipe: [{ papel: "empresa", custoFixoMensal: 20000 }],
+        compostos: [],
+        boinas: [],
+      },
+      zvizzer,
+      labor
+    );
+
+    expect(resultado.numeroPessoas).toBe(1);
+    expect(resultado.horasZvizzer).toBeCloseTo(3, 5);
   });
 });

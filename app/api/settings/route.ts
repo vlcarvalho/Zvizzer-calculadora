@@ -38,6 +38,7 @@ export async function GET() {
       feriasPct: labor.feriasPct,
       adicionalFeriasPct: labor.adicionalFeriasPct,
       outrosEncargosPct: labor.outrosEncargosPct,
+      horasBaseMensalEmpresa: labor.horasBaseMensalEmpresa,
     },
   });
 }

@@ -35,6 +35,7 @@ async function main() {
       feriasPct: 0.0833, // 1/12
       adicionalFeriasPct: 0.0278, // 1/3 de férias, prorateado (1/12 * 1/3)
       outrosEncargosPct: 0,
+      horasBaseMensalEmpresa: 220, // referência de mercado para o cenário "empresa"
     },
   });
 
