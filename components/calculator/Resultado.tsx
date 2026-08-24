@@ -1,12 +1,17 @@
 "use client";
 
-import type { CalculatorResult } from "@/lib/calculations";
+import type { BoinaInput, CalculatorResult, CompostoInput } from "@/lib/calculations";
+import type { ZvizzerDisplaySettings } from "@/lib/hooks/use-settings";
 import { formatarHoras, formatarMoeda } from "@/lib/format";
 import { Button } from "@/components/ui/Button";
+import { ComparativoProdutos } from "@/components/calculator/ComparativoProdutos";
 
 interface ResultadoProps {
   resultado: CalculatorResult;
   polimentosMes: number;
+  compostosUsuario: CompostoInput[];
+  boinasUsuario: BoinaInput[];
+  zvizzerSettings: ZvizzerDisplaySettings;
   onVerRevendedores: () => void;
   onNovoCalculo: () => void;
 }
@@ -14,6 +19,9 @@ interface ResultadoProps {
 export function Resultado({
   resultado,
   polimentosMes,
+  compostosUsuario,
+  boinasUsuario,
+  zvizzerSettings,
   onVerRevendedores,
   onNovoCalculo,
 }: ResultadoProps) {
@@ -82,10 +90,21 @@ export function Resultado({
             custoPorPolimento={resultado.custoOperacionalZvizzer}
             tempo={resultado.horasZvizzer}
             custoMensal={resultado.custoOperacionalMensalZvizzer}
+            nota={
+              resultado.numeroPessoas > 1
+                ? `Tempo dividido entre ${resultado.numeroPessoas} pessoas trabalhando juntas`
+                : undefined
+            }
             destaque
           />
         </div>
       </div>
+
+      <ComparativoProdutos
+        compostosUsuario={compostosUsuario}
+        boinasUsuario={boinasUsuario}
+        zvizzer={zvizzerSettings}
+      />
 
       <p className="text-center text-xs leading-relaxed text-muted">
         As horas liberadas podem ser utilizadas para novos polimentos, outros serviços,
@@ -139,12 +158,14 @@ function CardComparativo({
   custoPorPolimento,
   tempo,
   custoMensal,
+  nota,
   destaque,
 }: {
   titulo: string;
   custoPorPolimento: number;
   tempo: number;
   custoMensal: number;
+  nota?: string;
   destaque?: boolean;
 }) {
   return (
@@ -159,9 +180,12 @@ function CardComparativo({
           <dt className="text-xs text-muted">Custo por polimento</dt>
           <dd className="text-lg font-bold tabular-nums">{formatarMoeda(custoPorPolimento, true)}</dd>
         </div>
-        <div className="flex items-baseline justify-between">
-          <dt className="text-xs text-muted">Tempo por polimento</dt>
-          <dd className="text-lg font-bold tabular-nums">{formatarHoras(tempo)}</dd>
+        <div>
+          <div className="flex items-baseline justify-between">
+            <dt className="text-xs text-muted">Tempo por polimento</dt>
+            <dd className="text-lg font-bold tabular-nums">{formatarHoras(tempo)}</dd>
+          </div>
+          {nota && <p className="mt-0.5 text-right text-[11px] text-muted">{nota}</p>}
         </div>
         <div className="flex items-baseline justify-between">
           <dt className="text-xs text-muted">Custo mensal</dt>

@@ -21,9 +21,11 @@ export async function GET() {
 
   return NextResponse.json({
     zvizzer: {
+      compostoNome: zvizzer.compostoNome,
       compostoPreco: zvizzer.compostoPreco,
       compostoPesoG: zvizzer.compostoPesoG,
       compostoConsumoG: zvizzer.compostoConsumoG,
+      boinaNome: zvizzer.boinaNome,
       boinaPreco: zvizzer.boinaPreco,
       boinaQuantidade: zvizzer.boinaQuantidade,
       boinaDurabilidadeCarros: zvizzer.boinaDurabilidadeCarros,

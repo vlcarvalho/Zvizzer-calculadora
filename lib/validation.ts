@@ -90,9 +90,11 @@ export const resellerSchema = z.object({
 export type ResellerFormInput = z.infer<typeof resellerSchema>;
 
 export const zvizzerSettingsSchema = z.object({
+  compostoNome: z.string().min(1, { message: "Informe o nome do composto." }),
   compostoPreco: z.number().positive(),
   compostoPesoG: z.number().positive(),
   compostoConsumoG: z.number().positive(),
+  boinaNome: z.string().min(1, { message: "Informe o nome da boina." }),
   boinaPreco: z.number().positive(),
   boinaQuantidade: z.number().positive(),
   boinaDurabilidadeCarros: z.number().positive(),

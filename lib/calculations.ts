@@ -201,6 +201,7 @@ export interface CalculatorResult {
   custoHoraEfetivo: number;
   valorVendaHora: number;
 
+  numeroPessoas: number;
   horasAtuais: number;
   horasZvizzer: number;
 
@@ -234,7 +235,13 @@ export function calcular(
   const custoHora = custoHoraEfetivo(input.equipe, labor);
   const vendaHora = valorVendaHora(input.precoMedioPolimento, input.horasAtuais);
 
-  const horasZvizzer = zvizzer.tempoProcessoMinutos / 60;
+  // Quantas pessoas efetivamente polem o carro juntas. O tempo do processo
+  // Zvizzer configurado no admin (`tempoProcessoMinutos`) é a referência para
+  // 1 pessoa sozinha; com mais gente trabalhando ao mesmo tempo no mesmo
+  // carro, o tempo de parede diminui proporcionalmente (ajuste pedido pela
+  // Zvizzer: 2 pessoas ≈ metade do tempo, 3 pessoas ≈ um terço, etc.).
+  const numeroPessoas = Math.max(1, input.equipe.length);
+  const horasZvizzer = zvizzer.tempoProcessoMinutos / 60 / numeroPessoas;
 
   // --- Cenário atual ---
   const custoCompostosAtual = custoCompostosTotal(input.compostos);
@@ -274,6 +281,7 @@ export function calcular(
   return {
     custoHoraEfetivo: custoHora,
     valorVendaHora: vendaHora,
+    numeroPessoas,
     horasAtuais: input.horasAtuais,
     horasZvizzer,
     custoCompostosAtual,

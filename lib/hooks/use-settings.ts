@@ -3,8 +3,15 @@
 import { useEffect, useState } from "react";
 import type { LaborParams, ZvizzerParams } from "@/lib/calculations";
 
+/** Parâmetros Zvizzer numéricos (usados no cálculo) + nomes dos produtos
+ * (só para exibição, na tabela comparativa do resultado). */
+export type ZvizzerDisplaySettings = ZvizzerParams & {
+  compostoNome: string;
+  boinaNome: string;
+};
+
 interface SettingsResponse {
-  zvizzer: ZvizzerParams;
+  zvizzer: ZvizzerDisplaySettings;
   labor: LaborParams;
 }
 

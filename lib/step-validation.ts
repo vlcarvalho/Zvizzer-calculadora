@@ -4,7 +4,6 @@ import {
   membroSchema,
   volumePrecoSchema,
 } from "@/lib/validation";
-import { horasEMinutosParaDecimal } from "@/lib/format";
 import type { BoinaInput, CompostoInput, MembroInput } from "@/lib/calculations";
 import type { VolumePrecoState } from "@/lib/store/calculator-store";
 
@@ -22,11 +21,10 @@ function coletarErros(result: { success: boolean; error?: { issues: { path: Prop
 }
 
 export function validarEtapaVolume(volumePreco: VolumePrecoState): ErrosCampo {
-  const horasAtuais = horasEMinutosParaDecimal(volumePreco.horas, volumePreco.minutos);
   const result = volumePrecoSchema.safeParse({
     polimentosMes: volumePreco.polimentosMes,
     precoMedioPolimento: volumePreco.precoMedioPolimento,
-    horasAtuais,
+    horasAtuais: volumePreco.horas,
   });
   return coletarErros(result);
 }

@@ -5,9 +5,11 @@ import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 
 interface ZvizzerSettings {
+  compostoNome: string;
   compostoPreco: number;
   compostoPesoG: number;
   compostoConsumoG: number;
+  boinaNome: string;
   boinaPreco: number;
   boinaQuantidade: number;
   boinaDurabilidadeCarros: number;
@@ -70,7 +72,21 @@ export default function AdminParametrosPage() {
 
       <section className="flex flex-col gap-4">
         <h2 className="text-lg font-bold">Processo Zvizzer</h2>
+        <p className="text-xs text-muted">
+          Os nomes dos produtos aparecem na tabela comparativa mostrada ao usuário no resultado
+          da calculadora.
+        </p>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <TextoField
+            label="Nome do composto"
+            value={zvizzer.compostoNome}
+            onChange={(v) => setZvizzer({ ...zvizzer, compostoNome: v })}
+          />
+          <TextoField
+            label="Nome da boina"
+            value={zvizzer.boinaNome}
+            onChange={(v) => setZvizzer({ ...zvizzer, boinaNome: v })}
+          />
           <NumeroField
             label="Preço do composto (R$)"
             value={zvizzer.compostoPreco}
@@ -161,6 +177,27 @@ export default function AdminParametrosPage() {
         {salvando ? "Salvando…" : "Salvar parâmetros"}
       </Button>
     </div>
+  );
+}
+
+function TextoField({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <Field label={label}>
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-base text-foreground focus:border-accent focus:outline-none"
+      />
+    </Field>
   );
 }
 

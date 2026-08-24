@@ -194,7 +194,54 @@ describe("calcular() — cenário completo", () => {
     );
 
     const custoHoraEsperado = custoHoraEfetivo(equipe, labor);
+    // 2 pessoas na equipe → tempo Zvizzer cai pela metade (3h → 1,5h).
+    expect(resultado.horasZvizzer).toBeCloseTo(1.5, 5);
+    expect(resultado.numeroPessoas).toBe(2);
     expect(resultado.custoMaoDeObraAtual).toBeCloseTo(custoHoraEsperado * 4, 5);
-    expect(resultado.custoMaoDeObraZvizzer).toBeCloseTo(custoHoraEsperado * 3, 5);
+    expect(resultado.custoMaoDeObraZvizzer).toBeCloseTo(custoHoraEsperado * 1.5, 5);
+  });
+
+  it("tempo do processo Zvizzer diminui proporcionalmente ao número de pessoas na equipe", () => {
+    const baseInput = {
+      polimentosMes: 10,
+      precoMedioPolimento: 500,
+      horasAtuais: 6,
+      compostos: [],
+      boinas: [],
+    };
+
+    const umaPessoa = calcular(
+      { ...baseInput, equipe: [{ papel: "proprietario" as const, proLabore: 5000, horasSemanais: 44 }] },
+      zvizzer,
+      labor
+    );
+    const duasPessoas = calcular(
+      {
+        ...baseInput,
+        equipe: [
+          { papel: "proprietario" as const, proLabore: 5000, horasSemanais: 44 },
+          { papel: "colaborador" as const, salarioBruto: 2000, beneficios: 0, horasSemanais: 44 },
+        ],
+      },
+      zvizzer,
+      labor
+    );
+    const tresPessoas = calcular(
+      {
+        ...baseInput,
+        equipe: [
+          { papel: "proprietario" as const, proLabore: 5000, horasSemanais: 44 },
+          { papel: "colaborador" as const, salarioBruto: 2000, beneficios: 0, horasSemanais: 44 },
+          { papel: "colaborador" as const, salarioBruto: 2000, beneficios: 0, horasSemanais: 44 },
+        ],
+      },
+      zvizzer,
+      labor
+    );
+
+    // tempoProcessoMinutos = 180 (referência: 1 pessoa sozinha) → 3h.
+    expect(umaPessoa.horasZvizzer).toBeCloseTo(3, 5);
+    expect(duasPessoas.horasZvizzer).toBeCloseTo(1.5, 5); // metade
+    expect(tresPessoas.horasZvizzer).toBeCloseTo(1, 5); // um terço
   });
 });

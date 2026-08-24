@@ -9,8 +9,9 @@ export type TipoMaoDeObra = "proprietario" | "colaborador" | "equipe";
 export interface VolumePrecoState {
   polimentosMes: number;
   precoMedioPolimento: number;
+  /** Horas do polimento atual (decimal — ex.: 5,5 = 5h30). Apenas horas na
+   * UI, sem campo separado de minutos, a pedido da Zvizzer. */
   horas: number;
-  minutos: number;
 }
 
 interface CalculatorState {
@@ -62,7 +63,7 @@ const boinaPadrao: BoinaInput = {
 
 const estadoInicial = {
   etapa: 1,
-  volumePreco: { polimentosMes: 0, precoMedioPolimento: 0, horas: 0, minutos: 0 },
+  volumePreco: { polimentosMes: 0, precoMedioPolimento: 0, horas: 0 },
   tipoMaoDeObra: "proprietario" as TipoMaoDeObra,
   membros: [membroProprietarioPadrao],
   compostos: [compostoPadrao],

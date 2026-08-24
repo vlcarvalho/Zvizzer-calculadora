@@ -24,13 +24,15 @@ model AdminUser {
 /// Singleton: sempre um único registro com id = "default".
 model ZvizzerSettings {
   id                     String   @id @default("default")
+  compostoNome           String   @default("Composto Zvizzer") // nome/linha do produto, para a tabela comparativa
   compostoPreco          Float // preço da embalagem do composto (R$)
   compostoPesoG          Float // peso da embalagem (g)
   compostoConsumoG       Float // consumo médio por carro (g)
+  boinaNome              String   @default("Boina Zvizzer") // nome/linha do produto, para a tabela comparativa
   boinaPreco             Float // preço de cada boina (R$)
   boinaQuantidade        Float // qtd de boinas em revezamento
   boinaDurabilidadeCarros Float // carros atendidos antes da troca
-  tempoProcessoMinutos   Float // tempo médio do processo Zvizzer (min)
+  tempoProcessoMinutos   Float // tempo médio do processo Zvizzer (min), para 1 pessoa trabalhando sozinha
   updatedAt              DateTime @updatedAt
   updatedBy              String?
 }

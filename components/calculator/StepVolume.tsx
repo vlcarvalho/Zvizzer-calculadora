@@ -4,7 +4,6 @@ import { useCalculatorStore } from "@/lib/store/calculator-store";
 import { Field } from "@/components/ui/Field";
 import { NumericInput } from "@/components/ui/NumericInput";
 import { CurrencyInput } from "@/components/ui/CurrencyInput";
-import { HoursInput } from "@/components/ui/HoursInput";
 
 interface StepVolumeProps {
   erros: Record<string, string>;
@@ -45,13 +44,15 @@ export function StepVolume({ erros }: StepVolumeProps) {
 
       <Field
         label="Quanto tempo você leva atualmente para realizar o polimento de um carro?"
-        hint="Ex.: 5 horas, ou 5h30"
+        hint="Em horas. Ex.: 5 (use 5,5 para 5h30)"
         error={erros.horasAtuais}
       >
-        <HoursInput
-          horas={volumePreco.horas}
-          minutos={volumePreco.minutos}
-          onChange={(horas, minutos) => setVolumePreco({ horas, minutos })}
+        <NumericInput
+          value={volumePreco.horas || ""}
+          onChange={(v) => setVolumePreco({ horas: v })}
+          placeholder="Ex.: 5"
+          suffix="horas"
+          step={0.5}
         />
       </Field>
     </div>

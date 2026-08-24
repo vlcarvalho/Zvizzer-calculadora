@@ -105,6 +105,9 @@ export function Wizard() {
       <Resultado
         resultado={resultado}
         polimentosMes={store.volumePreco.polimentosMes}
+        compostosUsuario={store.compostos}
+        boinasUsuario={store.boinas}
+        zvizzerSettings={settings.zvizzer}
         onVerRevendedores={() => setFase("revendedores")}
         onNovoCalculo={handleNovoCalculo}
       />

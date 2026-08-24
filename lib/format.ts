@@ -26,10 +26,6 @@ export function formatarHoras(horasDecimais: number): string {
   return `${horas}h${String(minutos).padStart(2, "0")}`;
 }
 
-export function horasEMinutosParaDecimal(horas: number, minutos: number): number {
-  return horas + minutos / 60;
-}
-
 export function formatarPercentual(fracao: number, casasDecimais = 1): string {
   if (!Number.isFinite(fracao)) return "0%";
   return `${(fracao * 100).toFixed(casasDecimais).replace(".", ",")}%`;

@@ -1,6 +1,5 @@
 import type { CalculatorInput } from "@/lib/calculations";
 import type { VolumePrecoState } from "@/lib/store/calculator-store";
-import { horasEMinutosParaDecimal } from "@/lib/format";
 import type { BoinaInput, CompostoInput, MembroInput } from "@/lib/calculations";
 
 export function converterParaCalculatorInput(store: {
@@ -12,7 +11,7 @@ export function converterParaCalculatorInput(store: {
   return {
     polimentosMes: store.volumePreco.polimentosMes,
     precoMedioPolimento: store.volumePreco.precoMedioPolimento,
-    horasAtuais: horasEMinutosParaDecimal(store.volumePreco.horas, store.volumePreco.minutos),
+    horasAtuais: store.volumePreco.horas,
     equipe: store.membros,
     compostos: store.compostos,
     boinas: store.boinas,
