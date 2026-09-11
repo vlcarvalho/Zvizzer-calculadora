@@ -48,6 +48,39 @@ model LaborSettings {
   updatedAt         DateTime @updatedAt
 }
 
+/// Master Trainers apresentados no fim do resultado. Nome, foto e mini-CV
+/// são editáveis no painel admin (nada hardcoded no código).
+model MasterTrainer {
+  id        String   @id @default(cuid())
+  nome      String
+  fotoUrl   String? // caminho em /public/master-trainers/... ou URL externa
+  miniCv    String // até ~4 linhas
+  ordem     Int      @default(0)
+  ativo     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// Contato deixado voluntariamente no fim do resultado, junto com um retrato
+/// do cálculo daquela pessoa ("receba esse formulário com a sua realidade").
+/// Preenchimento é opcional — o usuário segue para os revendedores de todo jeito.
+model Lead {
+  id       String @id @default(cuid())
+  email    String
+  whatsapp String
+
+  // Retrato do resultado no momento do envio
+  polimentosMes        Int
+  custoAtualPorCarro   Float
+  custoZvizzerPorCarro Float
+  economiaMensal       Float
+  horasLiberadasMes    Float
+
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
+
 model Reseller {
   id        String   @id @default(cuid())
   nome      String

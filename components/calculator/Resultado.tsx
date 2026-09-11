@@ -3,8 +3,10 @@
 import type { BoinaInput, CalculatorResult, CompostoInput } from "@/lib/calculations";
 import type { ZvizzerDisplaySettings } from "@/lib/hooks/use-settings";
 import { formatarHoras, formatarMoeda } from "@/lib/format";
-import { Button } from "@/components/ui/Button";
-import { ComparativoProdutos } from "@/components/calculator/ComparativoProdutos";
+import { BlocoCusto } from "@/components/calculator/BlocoCusto";
+import { GatilhoEconomia } from "@/components/calculator/GatilhoEconomia";
+import { ComoChegamos } from "@/components/calculator/ComoChegamos";
+import { CaptacaoLead } from "@/components/calculator/CaptacaoLead";
 
 interface ResultadoProps {
   resultado: CalculatorResult;
@@ -16,6 +18,15 @@ interface ResultadoProps {
   onNovoCalculo: () => void;
 }
 
+/**
+ * Sequência da página final, na ordem definida pela Zvizzer:
+ * 1. custo atual fechado (compostos + boinas + custo/hora)
+ * 2. gatilho "nem tudo está perdido" com os ganhos possíveis
+ * 3. custo com Zvizzer, no mesmo formato
+ * 4. como chegamos nesse custo (quantidades + tecnologia)
+ * 5. potencial mensal
+ * 6. captação de contato + Master Trainers → revendedores
+ */
 export function Resultado({
   resultado,
   polimentosMes,
@@ -29,72 +40,63 @@ export function Resultado({
 
   return (
     <div className="flex flex-col gap-8">
-      <div>
-        <h2 className="text-center text-2xl font-bold">Como chegamos nesse resultado</h2>
-        <p className="mt-1 text-center text-sm text-muted">
-          Antes do número final, veja os produtos e o raciocínio por trás da economia.
-        </p>
-      </div>
+      {/* 1. Custo operacional atual */}
+      <BlocoCusto
+        titulo="Seu custo operacional hoje"
+        subtitulo={`Por carro, considerando ${polimentosMes} polimentos/mês`}
+        custoCompostos={resultado.custoCompostosAtual}
+        custoBoinas={resultado.custoBoinasAtual}
+        custoMaoDeObra={resultado.custoMaoDeObraAtual}
+        custoHora={resultado.custoHoraEfetivo}
+        horas={resultado.horasAtuais}
+        total={resultado.custoOperacionalAtual}
+        mensagemTotal="Seu custo de polimento por carro atual é de"
+      />
 
-      {/* 1. Produtos utilizados + premissas de valor, 2. "por que é menor" */}
-      <ComparativoProdutos
+      {/* 2. Gatilho */}
+      <GatilhoEconomia resultado={resultado} />
+
+      {/* 3. Custo com Zvizzer, no mesmo formato */}
+      <BlocoCusto
+        destaque
+        titulo="Com a tecnologia alemã Zvizzer"
+        subtitulo="Mesmo carro, mesmo custo-hora da sua operação"
+        custoCompostos={resultado.custoCompostoZvizzer}
+        custoBoinas={resultado.custoBoinaZvizzer}
+        custoMaoDeObra={resultado.custoMaoDeObraZvizzer}
+        custoHora={resultado.custoHoraEfetivo}
+        horas={resultado.horasZvizzer}
+        total={resultado.custoOperacionalZvizzer}
+        mensagemTotal="Seu custo de polimento por carro passaria a ser"
+      />
+
+      {/* 4. O racional por trás do número */}
+      <ComoChegamos
+        resultado={resultado}
         compostosUsuario={compostosUsuario}
         boinasUsuario={boinasUsuario}
         zvizzer={zvizzerSettings}
       />
 
-      {/* 3. Comparativo visual (custo/tempo/mensal lado a lado) */}
-      <div>
-        <h3 className="mb-4 text-center text-sm font-semibold uppercase tracking-widest text-muted">
-          Comparativo
-        </h3>
-        <div className="relative grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <CardComparativo
-            titulo="Seu processo atual"
-            custoPorPolimento={resultado.custoOperacionalAtual}
-            tempo={resultado.horasAtuais}
-            custoMensal={resultado.custoOperacionalMensalAtual}
-          />
-          <div className="pointer-events-none absolute left-1/2 top-1/2 z-10 hidden -translate-x-1/2 -translate-y-1/2 rounded-full border border-border bg-background px-3 py-1 text-xs font-bold text-muted sm:block">
-            VS
-          </div>
-          <CardComparativo
-            titulo="Processo Zvizzer"
-            custoPorPolimento={resultado.custoOperacionalZvizzer}
-            tempo={resultado.horasZvizzer}
-            custoMensal={resultado.custoOperacionalMensalZvizzer}
-            nota={
-              resultado.numeroPessoas > 1
-                ? `Tempo dividido entre ${resultado.numeroPessoas} pessoas trabalhando juntas`
-                : undefined
-            }
-            destaque
-          />
-        </div>
-      </div>
-
-      {/* 4. Seu potencial — o resumo final, por último */}
-      <div className="rounded-3xl border border-accent/30 bg-gradient-to-b from-accent/10 to-transparent p-6 text-center">
+      {/* 5. Potencial mensal */}
+      <section className="rounded-3xl border border-accent/30 bg-gradient-to-b from-accent/10 to-transparent p-6 text-center">
         <p className="text-sm font-semibold uppercase tracking-widest text-accent">
-          Seu potencial
+          Seu potencial por mês
         </p>
 
         <div className="mt-6 grid grid-cols-1 gap-5 text-left sm:grid-cols-3">
-          <MetricaGrande
-            label={economiaNegativa ? "Diferença de custo operacional" : "Economia operacional"}
+          <Metrica
+            label={economiaNegativa ? "Diferença de custo" : "Economia operacional"}
             valor={formatarMoeda(resultado.economiaMensal)}
-            sufixo="/mês"
             destaque={!economiaNegativa}
           />
-          <MetricaGrande
+          <Metrica
             label="Horas liberadas"
             valor={formatarHoras(resultado.horasLiberadasMes)}
-            sufixo="/mês"
           />
-          <MetricaGrande
-            label="Capacidade potencial de faturamento"
+          <Metrica
+            label="Potencial de faturamento"
             valor={formatarMoeda(resultado.capacidadeFaturamento)}
-            sufixo="/mês"
           />
         </div>
 
@@ -108,52 +110,59 @@ export function Resultado({
 
         {resultado.horasLiberadasMes > 0 && (
           <p className="mt-4 text-sm text-muted">
-            Você poderia liberar {formatarHoras(resultado.horasLiberadasMes)} da sua agenda
-            todos os meses sem aumentar sua carga horária.
+            São {formatarHoras(resultado.horasLiberadasMes)} livres na sua agenda todo mês, sem
+            aumentar sua carga de trabalho.
           </p>
         )}
-      </div>
+      </section>
+
+      {/* 6. Captação + Master Trainers → revendedores */}
+      <CaptacaoLead
+        resultado={resultado}
+        polimentosMes={polimentosMes}
+        onConcluir={onVerRevendedores}
+      />
 
       <p className="text-center text-xs leading-relaxed text-muted">
-        As horas liberadas podem ser utilizadas para novos polimentos, outros serviços,
-        gestão da empresa ou redução da carga de trabalho. A capacidade de faturamento é uma
-        estimativa de valor comercial das horas liberadas, não um faturamento garantido.
-        {polimentosMes > 0 && ` Cálculo baseado em ${polimentosMes} polimentos/mês.`}
+        As horas liberadas podem virar novos polimentos, outros serviços, gestão da empresa ou
+        menos carga de trabalho. O potencial de faturamento é o valor comercial dessas horas, não
+        um faturamento garantido.
       </p>
 
-      <div className="flex flex-col gap-3">
-        <Button onClick={onVerRevendedores}>Encontrar um revendedor Zvizzer</Button>
-        <button
-          type="button"
-          onClick={onNovoCalculo}
-          className="text-center text-sm text-muted underline underline-offset-4"
-        >
-          Fazer novo cálculo
-        </button>
-      </div>
+      <button
+        type="button"
+        onClick={onNovoCalculo}
+        className="text-center text-sm text-muted underline underline-offset-4"
+      >
+        Fazer novo cálculo
+      </button>
 
       {/* A marca aparece só aqui, no fim da jornada — a abertura é neutra. */}
-      <footer className="mt-2 flex flex-col items-center gap-2 border-t border-border pt-8">
+      <footer className="flex flex-col items-center gap-3 border-t border-border pt-8">
         <span className="text-[10px] uppercase tracking-widest text-muted">
           Tecnologia alemã
         </span>
-        <span className="chrome-text text-xl font-black uppercase tracking-[0.35em]">
-          Zvizzer
-        </span>
+        {/* Logo oficial da marca (PNG gerado do PDF enviado pela Zvizzer).
+            `mix-blend-screen` some com o fundo preto do arquivo, encaixando
+            a arte no fundo da página sem precisar de PNG transparente. */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/marca/zvizzer-logo.png"
+          alt="Zvizzer"
+          className="h-24 w-auto mix-blend-screen"
+        />
       </footer>
     </div>
   );
 }
 
-function MetricaGrande({
+function Metrica({
   label,
   valor,
-  sufixo,
   destaque,
 }: {
   label: string;
   valor: string;
-  sufixo?: string;
   destaque?: boolean;
 }) {
   return (
@@ -165,51 +174,7 @@ function MetricaGrande({
         }`}
       >
         {valor}
-        {sufixo && <span className="text-sm font-medium text-muted">{sufixo}</span>}
       </p>
-    </div>
-  );
-}
-
-function CardComparativo({
-  titulo,
-  custoPorPolimento,
-  tempo,
-  custoMensal,
-  nota,
-  destaque,
-}: {
-  titulo: string;
-  custoPorPolimento: number;
-  tempo: number;
-  custoMensal: number;
-  nota?: string;
-  destaque?: boolean;
-}) {
-  return (
-    <div
-      className={`rounded-2xl border p-5 ${
-        destaque ? "border-accent/40 bg-accent/5" : "border-border bg-surface"
-      }`}
-    >
-      <p className="text-sm font-semibold text-muted">{titulo}</p>
-      <dl className="mt-4 flex flex-col gap-3">
-        <div className="flex items-baseline justify-between">
-          <dt className="text-xs text-muted">Custo por polimento</dt>
-          <dd className="text-lg font-bold tabular-nums">{formatarMoeda(custoPorPolimento, true)}</dd>
-        </div>
-        <div>
-          <div className="flex items-baseline justify-between">
-            <dt className="text-xs text-muted">Tempo por polimento</dt>
-            <dd className="text-lg font-bold tabular-nums">{formatarHoras(tempo)}</dd>
-          </div>
-          {nota && <p className="mt-0.5 text-right text-[11px] text-muted">{nota}</p>}
-        </div>
-        <div className="flex items-baseline justify-between">
-          <dt className="text-xs text-muted">Custo mensal</dt>
-          <dd className="text-lg font-bold tabular-nums">{formatarMoeda(custoMensal)}</dd>
-        </div>
-      </dl>
     </div>
   );
 }

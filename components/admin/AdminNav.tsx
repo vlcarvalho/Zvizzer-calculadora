@@ -8,6 +8,8 @@ const LINKS = [
   { href: "/admin", label: "Dashboard" },
   { href: "/admin/parametros", label: "Parâmetros" },
   { href: "/admin/revendedores", label: "Revendedores" },
+  { href: "/admin/master-trainers", label: "Master Trainers" },
+  { href: "/admin/leads", label: "Contatos" },
 ];
 
 export function AdminNav() {

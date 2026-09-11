@@ -52,7 +52,36 @@ async function main() {
     }
   }
 
-  console.log("Seed concluído: parâmetros Zvizzer, mão de obra e revendedores de exemplo.");
+  // Master Trainers: nomes reais informados pela Zvizzer; foto e mini-CV
+  // ficam para a equipe preencher no painel admin (o texto abaixo é
+  // propositalmente marcado como exemplo, para ninguém confundir com
+  // credencial real).
+  const masterTrainers = [
+    "Pablo Neves",
+    "Nivaldo Habache",
+    "Priscila Breves",
+    "Márcio King",
+    "Diego",
+    "Marcos",
+  ];
+
+  for (const [i, nome] of masterTrainers.entries()) {
+    const existente = await prisma.masterTrainer.findFirst({ where: { nome } });
+    if (!existente) {
+      await prisma.masterTrainer.create({
+        data: {
+          nome,
+          ordem: i,
+          miniCv:
+            "Master Trainer oficial Zvizzer. (Texto de exemplo — substituir pelo mini-CV real no painel admin.)",
+        },
+      });
+    }
+  }
+
+  console.log(
+    "Seed concluído: parâmetros Zvizzer, horas de referência, revendedores e Master Trainers."
+  );
 }
 
 main()

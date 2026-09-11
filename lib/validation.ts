@@ -96,6 +96,19 @@ export const laborSettingsSchema = z.object({
   horasBaseMensais: z.number().positive(),
 });
 
+export const masterTrainerSchema = z.object({
+  nome: z.string().trim().min(1, { message: "Informe o nome do Master Trainer." }),
+  fotoUrl: z
+    .string()
+    .trim()
+    .optional()
+    .transform((v) => (v === "" ? null : (v ?? null))),
+  miniCv: z.string().trim().min(1, { message: "Informe o mini-CV." }),
+  ordem: z.number().int().min(0).default(0),
+  ativo: z.boolean().default(true),
+});
+export type MasterTrainerFormInput = z.infer<typeof masterTrainerSchema>;
+
 export const loginSchema = z.object({
   email: z.email({ message: "Informe um e-mail válido." }),
   senha: z.string().min(1, { message: "Informe a senha." }),
