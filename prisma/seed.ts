@@ -35,19 +35,25 @@ async function main() {
   // Revendedores de exemplo (fictícios) — o usuário substitui pela lista real
   // via painel admin antes de publicar.
   const revendedoresExemplo = [
-    { nome: "Auto Shine Detailing", cidade: "São Paulo", estado: "SP", whatsapp: "5511987654321" },
-    { nome: "Prime Car Care", cidade: "Campinas", estado: "SP", whatsapp: "5519987654321" },
-    { nome: "Detail House RJ", cidade: "Rio de Janeiro", estado: "RJ", whatsapp: "5521987654321" },
-    { nome: "Sul Detailing Studio", cidade: "Porto Alegre", estado: "RS", whatsapp: "5551987654321" },
-    { nome: "Paraná Polimentos", cidade: "Curitiba", estado: "PR", whatsapp: "5541987654321" },
-    { nome: "Bahia Car Detail", cidade: "Salvador", estado: "BA", whatsapp: "5571987654321" },
-    { nome: "Nordeste Shine", cidade: "Recife", estado: "PE", whatsapp: "5581987654321" },
-    { nome: "Central Detailing DF", cidade: "Brasília", estado: "DF", whatsapp: "5561987654321" },
+    { nome: "Auto Shine Detailing", cidade: "São Paulo", estado: "SP", whatsapp: "5511987654321", latitude: -23.5505, longitude: -46.6333 },
+    { nome: "Prime Car Care", cidade: "Campinas", estado: "SP", whatsapp: "5519987654321", latitude: -22.9056, longitude: -47.0608 },
+    { nome: "Detail House RJ", cidade: "Rio de Janeiro", estado: "RJ", whatsapp: "5521987654321", latitude: -22.9068, longitude: -43.1729 },
+    { nome: "Sul Detailing Studio", cidade: "Porto Alegre", estado: "RS", whatsapp: "5551987654321", latitude: -30.0346, longitude: -51.2177 },
+    { nome: "Paraná Polimentos", cidade: "Curitiba", estado: "PR", whatsapp: "5541987654321", latitude: -25.4284, longitude: -49.2733 },
+    { nome: "Bahia Car Detail", cidade: "Salvador", estado: "BA", whatsapp: "5571987654321", latitude: -12.9777, longitude: -38.5016 },
+    { nome: "Nordeste Shine", cidade: "Recife", estado: "PE", whatsapp: "5581987654321", latitude: -8.0476, longitude: -34.877 },
+    { nome: "Central Detailing DF", cidade: "Brasília", estado: "DF", whatsapp: "5561987654321", latitude: -15.7939, longitude: -47.8828 },
   ];
 
   for (const r of revendedoresExemplo) {
     const existente = await prisma.reseller.findFirst({ where: { nome: r.nome } });
-    if (!existente) {
+    if (existente) {
+      // Garante as coordenadas nos cadastros criados antes do mapa existir.
+      await prisma.reseller.update({
+        where: { id: existente.id },
+        data: { latitude: r.latitude, longitude: r.longitude },
+      });
+    } else {
       await prisma.reseller.create({ data: r });
     }
   }
@@ -57,27 +63,33 @@ async function main() {
   // propositalmente marcado como exemplo, para ninguém confundir com
   // credencial real).
   const masterTrainers = [
-    "Pablo Neves",
-    "Nivaldo Habache",
-    "Priscila Breves",
-    "Márcio King",
-    "Diego",
-    "Marcos",
+    { nome: "Pablo Neves", fotoUrl: "/master-trainers/pablo-neves.jpg" },
+    { nome: "Nivaldo Habache", fotoUrl: "/master-trainers/nivaldo-habache.jpg" },
+    { nome: "Priscila Breves", fotoUrl: "/master-trainers/priscila-breves.jpg" },
+    { nome: "Márcio King", fotoUrl: "/master-trainers/marcio-king.jpg" },
+    { nome: "Diego e Marcos", fotoUrl: "/master-trainers/diego-e-marcos.jpg" },
   ];
 
-  for (const [i, nome] of masterTrainers.entries()) {
-    const existente = await prisma.masterTrainer.findFirst({ where: { nome } });
-    if (!existente) {
+  const miniCvExemplo =
+    "Master Trainer oficial Zvizzer. (Texto de exemplo — substituir pelo mini-CV real no painel admin.)";
+
+  for (const [i, trainer] of masterTrainers.entries()) {
+    const existente = await prisma.masterTrainer.findFirst({ where: { nome: trainer.nome } });
+    if (existente) {
+      // Mantém o mini-CV que a equipe já tiver escrito; só garante a foto e a ordem.
+      await prisma.masterTrainer.update({
+        where: { id: existente.id },
+        data: { fotoUrl: trainer.fotoUrl, ordem: i },
+      });
+    } else {
       await prisma.masterTrainer.create({
-        data: {
-          nome,
-          ordem: i,
-          miniCv:
-            "Master Trainer oficial Zvizzer. (Texto de exemplo — substituir pelo mini-CV real no painel admin.)",
-        },
+        data: { ...trainer, ordem: i, miniCv: miniCvExemplo },
       });
     }
   }
+
+  // "Diego e Marcos" é uma dupla — remove os cadastros individuais criados antes.
+  await prisma.masterTrainer.deleteMany({ where: { nome: { in: ["Diego", "Marcos"] } } });
 
   console.log(
     "Seed concluído: parâmetros Zvizzer, horas de referência, revendedores e Master Trainers."

@@ -54,6 +54,60 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/* Pino e balão do mapa de revendedores (Leaflet) no tema escuro. */
+.pino-revendedor {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  background: var(--accent);
+  border: 3px solid var(--background);
+  box-shadow: 0 0 0 2px var(--accent), 0 0 14px rgba(166, 226, 46, 0.6);
+}
+
+.leaflet-container {
+  background: var(--surface-2);
+  font-family: inherit;
+}
+
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: var(--surface);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+}
+
+.leaflet-popup-content {
+  margin: 12px 14px;
+}
+
+.popup-revendedor {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.popup-revendedor strong {
+  font-size: 14px;
+}
+
+.popup-revendedor span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.popup-revendedor a {
+  margin-top: 6px;
+  border-radius: 10px;
+  background: var(--accent);
+  color: var(--accent-foreground);
+  padding: 8px 12px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
 /* Rotação bem lenta dos anéis da tela de abertura (remete à politriz). */
 @keyframes girar-lento {
   from {

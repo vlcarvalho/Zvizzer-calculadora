@@ -6,7 +6,15 @@ export async function GET() {
   const resellers = await prisma.reseller.findMany({
     where: { ativo: true },
     orderBy: [{ estado: "asc" }, { cidade: "asc" }, { nome: "asc" }],
-    select: { id: true, nome: true, cidade: true, estado: true, whatsapp: true },
+    select: {
+      id: true,
+      nome: true,
+      cidade: true,
+      estado: true,
+      whatsapp: true,
+      latitude: true,
+      longitude: true,
+    },
   });
 
   return NextResponse.json({ resellers });

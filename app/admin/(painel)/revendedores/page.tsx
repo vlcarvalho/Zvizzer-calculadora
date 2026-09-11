@@ -10,10 +10,20 @@ interface Reseller {
   cidade: string;
   estado: string;
   whatsapp: string;
+  latitude: number | null;
+  longitude: number | null;
   ativo: boolean;
 }
 
-const FORM_VAZIO = { nome: "", cidade: "", estado: "", whatsapp: "", ativo: true };
+const FORM_VAZIO = {
+  nome: "",
+  cidade: "",
+  estado: "",
+  whatsapp: "",
+  latitude: "" as number | "",
+  longitude: "" as number | "",
+  ativo: true,
+};
 
 export default function AdminRevendedoresPage() {
   const [resellers, setResellers] = useState<Reseller[]>([]);
@@ -22,6 +32,7 @@ export default function AdminRevendedoresPage() {
   const [form, setForm] = useState(FORM_VAZIO);
   const [mostrarForm, setMostrarForm] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
+  const [buscandoCoordenadas, setBuscandoCoordenadas] = useState(false);
 
   function carregar() {
     setCarregando(true);
@@ -50,17 +61,54 @@ export default function AdminRevendedoresPage() {
 
   function iniciarEdicao(r: Reseller) {
     setEditandoId(r.id);
-    setForm({ nome: r.nome, cidade: r.cidade, estado: r.estado, whatsapp: r.whatsapp, ativo: r.ativo });
+    setForm({
+      nome: r.nome,
+      cidade: r.cidade,
+      estado: r.estado,
+      whatsapp: r.whatsapp,
+      latitude: r.latitude ?? "",
+      longitude: r.longitude ?? "",
+      ativo: r.ativo,
+    });
     setErro(null);
     setMostrarForm(true);
   }
 
+  async function handleBuscarCoordenadas() {
+    if (!form.cidade || !form.estado) {
+      setErro("Preencha cidade e estado antes de buscar as coordenadas.");
+      return;
+    }
+
+    setBuscandoCoordenadas(true);
+    setErro(null);
+
+    const res = await fetch(
+      `/api/admin/geocode?cidade=${encodeURIComponent(form.cidade)}&estado=${encodeURIComponent(form.estado)}`
+    );
+    const data = await res.json().catch(() => ({}));
+    setBuscandoCoordenadas(false);
+
+    if (!res.ok) {
+      setErro(data.error ?? "Não foi possível buscar as coordenadas.");
+      return;
+    }
+
+    setForm((f) => ({ ...f, latitude: data.latitude, longitude: data.longitude }));
+  }
+
   async function handleSalvar() {
     setErro(null);
+    const payload = {
+      ...form,
+      latitude: form.latitude === "" ? null : Number(form.latitude),
+      longitude: form.longitude === "" ? null : Number(form.longitude),
+    };
+
     const res = await fetch("/api/admin/resellers", {
       method: editandoId ? "PUT" : "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(editandoId ? { id: editandoId, ...form } : form),
+      body: JSON.stringify(editandoId ? { id: editandoId, ...payload } : payload),
     });
 
     if (!res.ok) {
@@ -126,7 +174,45 @@ export default function AdminRevendedoresPage() {
                 className="w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-foreground focus:border-accent focus:outline-none"
               />
             </Field>
+            <Field label="Latitude" hint="Posição do pino no mapa.">
+              <input
+                type="number"
+                step="any"
+                value={form.latitude}
+                placeholder="-23.5505"
+                onChange={(e) =>
+                  setForm({ ...form, latitude: e.target.value === "" ? "" : Number(e.target.value) })
+                }
+                className="w-full rounded-xl border border-border bg-surface px-4 py-2.5 tabular-nums text-foreground focus:border-accent focus:outline-none"
+              />
+            </Field>
+            <Field label="Longitude">
+              <input
+                type="number"
+                step="any"
+                value={form.longitude}
+                placeholder="-46.6333"
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    longitude: e.target.value === "" ? "" : Number(e.target.value),
+                  })
+                }
+                className="w-full rounded-xl border border-border bg-surface px-4 py-2.5 tabular-nums text-foreground focus:border-accent focus:outline-none"
+              />
+            </Field>
           </div>
+
+          <Button
+            type="button"
+            variant="secondary"
+            fullWidth={false}
+            className="mt-4 w-fit px-6 py-2.5 text-sm"
+            onClick={handleBuscarCoordenadas}
+            disabled={buscandoCoordenadas}
+          >
+            {buscandoCoordenadas ? "Buscando…" : "Buscar coordenadas pela cidade"}
+          </Button>
 
           <label className="mt-4 flex items-center gap-2 text-sm">
             <input

@@ -1,8 +1,22 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import { montarLinkWhatsapp, type DadosMensagemWhatsapp } from "@/lib/whatsapp";
 import { track } from "@/lib/analytics";
+
+// O Leaflet mexe direto no DOM, então só pode carregar no navegador.
+const MapaRevendedores = dynamic(
+  () => import("@/components/resellers/MapaRevendedores").then((m) => m.MapaRevendedores),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex h-[320px] items-center justify-center rounded-2xl border border-border bg-surface text-sm text-muted sm:h-[420px]">
+        Carregando mapa…
+      </div>
+    ),
+  }
+);
 
 interface Reseller {
   id: string;
@@ -10,6 +24,8 @@ interface Reseller {
   cidade: string;
   estado: string;
   whatsapp: string;
+  latitude: number | null;
+  longitude: number | null;
 }
 
 interface ResellerListProps {
@@ -50,9 +66,9 @@ export function ResellerList({ dadosMensagem }: ResellerListProps) {
     });
   }, [resellers, estadoFiltro, cidadeFiltro, busca]);
 
-  function handleWhatsappClick(r: Reseller) {
+  const handleWhatsappClick = useCallback((r: Reseller) => {
     track("whatsapp_clicked", { resellerId: r.id, estado: r.estado, cidade: r.cidade });
-  }
+  }, []);
 
   return (
     <div className="flex flex-col gap-6">
@@ -99,6 +115,14 @@ export function ResellerList({ dadosMensagem }: ResellerListProps) {
           className="rounded-xl border border-border bg-surface px-4 py-3 text-sm text-foreground placeholder:text-muted/50 focus:border-accent focus:outline-none"
         />
       </div>
+
+      {!carregando && filtrados.length > 0 && (
+        <MapaRevendedores
+          revendedores={filtrados}
+          dadosMensagem={dadosMensagem}
+          onWhatsappClick={handleWhatsappClick}
+        />
+      )}
 
       {carregando ? (
         <p className="text-center text-muted">Carregando revendedores…</p>
