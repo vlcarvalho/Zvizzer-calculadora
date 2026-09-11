@@ -21,21 +21,14 @@ async function main() {
     },
   });
 
-  // Parâmetros de encargos/provisões trabalhistas (percentuais configuráveis,
-  // nunca hardcoded na aplicação — spec §5). Valores iniciais de referência;
-  // revisar com contabilidade antes da publicação definitiva.
+  // Referência de horas/mês usada para converter o custo fixo mensal da
+  // operação em custo-hora (configurável no admin, nunca hardcoded).
   await prisma.laborSettings.upsert({
     where: { id: "default" },
     update: {},
     create: {
       id: "default",
-      encargosPatronaisPct: 0.28, // INSS patronal + terceiros (referência)
-      fgtsPct: 0.08,
-      decimoTerceiroPct: 0.0833, // 1/12
-      feriasPct: 0.0833, // 1/12
-      adicionalFeriasPct: 0.0278, // 1/3 de férias, prorateado (1/12 * 1/3)
-      outrosEncargosPct: 0,
-      horasBaseMensalEmpresa: 220, // referência de mercado para o cenário "empresa"
+      horasBaseMensais: 220, // referência de mercado
     },
   });
 

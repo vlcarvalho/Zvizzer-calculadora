@@ -17,13 +17,7 @@ interface ZvizzerSettings {
 }
 
 interface LaborSettings {
-  encargosPatronaisPct: number;
-  fgtsPct: number;
-  decimoTerceiroPct: number;
-  feriasPct: number;
-  adicionalFeriasPct: number;
-  outrosEncargosPct: number;
-  horasBaseMensalEmpresa: number;
+  horasBaseMensais: number;
 }
 
 export default function AdminParametrosPage() {
@@ -127,62 +121,16 @@ export default function AdminParametrosPage() {
       </section>
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-lg font-bold">Encargos e provisões (colaborador)</h2>
+        <h2 className="text-lg font-bold">Custo-hora da operação</h2>
         <p className="text-xs text-muted">
-          Percentuais em fração decimal (ex.: 0,28 = 28%). Revisar com contabilidade antes da
-          publicação definitiva.
-        </p>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <NumeroField
-            label="Encargos patronais"
-            value={labor.encargosPatronaisPct}
-            step={0.001}
-            onChange={(v) => setLabor({ ...labor, encargosPatronaisPct: v })}
-          />
-          <NumeroField
-            label="FGTS"
-            value={labor.fgtsPct}
-            step={0.001}
-            onChange={(v) => setLabor({ ...labor, fgtsPct: v })}
-          />
-          <NumeroField
-            label="Provisão de 13º"
-            value={labor.decimoTerceiroPct}
-            step={0.001}
-            onChange={(v) => setLabor({ ...labor, decimoTerceiroPct: v })}
-          />
-          <NumeroField
-            label="Provisão de férias"
-            value={labor.feriasPct}
-            step={0.001}
-            onChange={(v) => setLabor({ ...labor, feriasPct: v })}
-          />
-          <NumeroField
-            label="Adicional de 1/3 de férias"
-            value={labor.adicionalFeriasPct}
-            step={0.001}
-            onChange={(v) => setLabor({ ...labor, adicionalFeriasPct: v })}
-          />
-          <NumeroField
-            label="Outros encargos"
-            value={labor.outrosEncargosPct}
-            step={0.001}
-            onChange={(v) => setLabor({ ...labor, outrosEncargosPct: v })}
-          />
-        </div>
-      </section>
-
-      <section className="flex flex-col gap-4">
-        <h2 className="text-lg font-bold">Cenário &quot;Empresa com vários funcionários&quot;</h2>
-        <p className="text-xs text-muted">
-          Nesse cenário o custo-hora não soma salário por salário: é o custo fixo mensal que o
-          cliente informar, dividido por esta referência de horas/mês.
+          O usuário informa os custos fixos mensais (pró-labore, aluguel, funcionários e demais
+          despesas) e o custo-hora sai da soma dividida por esta referência de horas/mês.
         </p>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <NumeroField
             label="Horas/mês de referência"
-            value={labor.horasBaseMensalEmpresa}
-            onChange={(v) => setLabor({ ...labor, horasBaseMensalEmpresa: v })}
+            value={labor.horasBaseMensais}
+            onChange={(v) => setLabor({ ...labor, horasBaseMensais: v })}
           />
         </div>
       </section>

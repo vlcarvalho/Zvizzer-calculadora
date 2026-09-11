@@ -37,22 +37,15 @@ model ZvizzerSettings {
   updatedBy              String?
 }
 
-/// Parâmetros de encargos/provisões trabalhistas usados no custo de colaborador.
-/// Singleton: sempre um único registro com id = "default". Percentuais em
-/// fração decimal (ex.: 0.08 = 8%), nunca hardcoded no client.
+/// Parâmetros usados para transformar o custo fixo mensal informado pelo
+/// usuário em custo-hora da operação. Singleton: sempre um único registro
+/// com id = "default". Nunca hardcoded no client.
 model LaborSettings {
-  id                    String   @id @default("default")
-  encargosPatronaisPct  Float
-  fgtsPct               Float
-  decimoTerceiroPct     Float
-  feriasPct             Float
-  adicionalFeriasPct    Float
-  outrosEncargosPct     Float
-  /// Divisor de horas/mês para o cenário "Empresa com vários funcionários"
-  /// (custo_hora = custo_fixo_mensal / horasBaseMensalEmpresa). Referência
-  /// padrão de mercado: 220h/mês.
-  horasBaseMensalEmpresa Float   @default(220)
-  updatedAt             DateTime @updatedAt
+  id                String   @id @default("default")
+  /// Divisor de horas/mês (custo_hora = custo_fixo_mensal / horasBaseMensais).
+  /// Referência padrão de mercado: 220h/mês.
+  horasBaseMensais  Float    @default(220)
+  updatedAt         DateTime @updatedAt
 }
 
 model Reseller {

@@ -2,27 +2,19 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { BoinaInput, CompostoInput, MembroInput } from "@/lib/calculations";
-
-export type TipoMaoDeObra = "proprietario" | "colaborador" | "equipe" | "empresa";
+import type { BoinaInput, CompostoInput, CustosFixosInput } from "@/lib/calculations";
 
 export interface VolumePrecoState {
   polimentosMes: number;
   precoMedioPolimento: number;
-  /** Horas do polimento atual (decimal — ex.: 5,5 = 5h30). Apenas horas na
-   * UI, sem campo separado de minutos, a pedido da Zvizzer. */
+  /** Horas do polimento atual (decimal — ex.: 5,5 = 5h30). */
   horas: number;
 }
 
 interface CalculatorState {
-  etapa: number; // 1..4 (etapa 5 = resultado, não persistida como "etapa")
+  etapa: number; // 1..4 (a tela de resultado não conta como etapa)
   volumePreco: VolumePrecoState;
-  tipoMaoDeObra: TipoMaoDeObra;
-  membros: MembroInput[];
-  /** Só usado no modo "empresa": quantas pessoas atuam na etapa de
-   * polimento — o custo é único (custo fixo), mas esse número ainda é
-   * necessário para dividir o tempo do processo Zvizzer proporcionalmente. */
-  numeroPessoasEmpresa: number;
+  custosFixos: CustosFixosInput;
   compostos: CompostoInput[];
   boinas: BoinaInput[];
 
@@ -31,11 +23,7 @@ interface CalculatorState {
   etapaAnterior: () => void;
 
   setVolumePreco: (patch: Partial<VolumePrecoState>) => void;
-  setTipoMaoDeObra: (tipo: TipoMaoDeObra) => void;
-  setMembro: (index: number, membro: MembroInput) => void;
-  adicionarMembro: () => void;
-  removerMembro: (index: number) => void;
-  setNumeroPessoasEmpresa: (n: number) => void;
+  setCustosFixos: (patch: Partial<CustosFixosInput>) => void;
 
   adicionarComposto: () => void;
   atualizarComposto: (index: number, patch: Partial<CompostoInput>) => void;
@@ -48,20 +36,17 @@ interface CalculatorState {
   reiniciar: () => void;
 }
 
-const membroProprietarioPadrao: MembroInput = {
-  papel: "proprietario",
-  proLabore: 0,
-  horasSemanais: 44,
-};
-
 const compostoPadrao: CompostoInput = {
+  nome: "",
   precoEmbalagem: 0,
   quantidadeEmbalagemG: 0,
   consumoCarroG: 0,
 };
 
 const boinaPadrao: BoinaInput = {
-  quantidade: 1,
+  nome: "",
+  tipo: "",
+  quantidade: 0,
   precoUnitario: 0,
   durabilidadeCarros: 0,
 };
@@ -69,9 +54,12 @@ const boinaPadrao: BoinaInput = {
 const estadoInicial = {
   etapa: 1,
   volumePreco: { polimentosMes: 0, precoMedioPolimento: 0, horas: 0 },
-  tipoMaoDeObra: "proprietario" as TipoMaoDeObra,
-  membros: [membroProprietarioPadrao],
-  numeroPessoasEmpresa: 0,
+  custosFixos: {
+    salarioProLabore: 0,
+    aluguel: 0,
+    custoFuncionarios: 0,
+    demaisDespesas: 0,
+  },
   compostos: [compostoPadrao],
   boinas: [boinaPadrao],
 };
@@ -88,50 +76,8 @@ export const useCalculatorStore = create<CalculatorState>()(
       setVolumePreco: (patch) =>
         set((s) => ({ volumePreco: { ...s.volumePreco, ...patch } })),
 
-      setTipoMaoDeObra: (tipo) =>
-        set(() => {
-          if (tipo === "proprietario") {
-            return { tipoMaoDeObra: tipo, membros: [membroProprietarioPadrao] };
-          }
-          if (tipo === "colaborador") {
-            return {
-              tipoMaoDeObra: tipo,
-              membros: [
-                { papel: "colaborador", salarioBruto: 0, beneficios: 0, horasSemanais: 44 },
-              ],
-            };
-          }
-          if (tipo === "empresa") {
-            return {
-              tipoMaoDeObra: tipo,
-              membros: [{ papel: "empresa", custoFixoMensal: 0 }],
-            };
-          }
-          return {
-            tipoMaoDeObra: tipo,
-            membros: [membroProprietarioPadrao],
-          };
-        }),
-
-      setMembro: (index, membro) =>
-        set((s) => {
-          const membros = [...s.membros];
-          membros[index] = membro;
-          return { membros };
-        }),
-
-      adicionarMembro: () =>
-        set((s) => ({
-          membros: [
-            ...s.membros,
-            { papel: "colaborador", salarioBruto: 0, beneficios: 0, horasSemanais: 44 },
-          ],
-        })),
-
-      removerMembro: (index) =>
-        set((s) => ({ membros: s.membros.filter((_, i) => i !== index) })),
-
-      setNumeroPessoasEmpresa: (n) => set({ numeroPessoasEmpresa: n }),
+      setCustosFixos: (patch) =>
+        set((s) => ({ custosFixos: { ...s.custosFixos, ...patch } })),
 
       adicionarComposto: () =>
         set((s) => ({ compostos: [...s.compostos, { ...compostoPadrao }] })),
@@ -158,6 +104,7 @@ export const useCalculatorStore = create<CalculatorState>()(
     }),
     {
       name: "zvizzer-calculadora-progresso", // spec §25: persistência temporária
+      version: 2, // o formato mudou (custos fixos no lugar dos cenários de mão de obra)
     }
   )
 );

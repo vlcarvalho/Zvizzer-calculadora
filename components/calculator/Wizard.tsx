@@ -8,13 +8,14 @@ import { converterParaCalculatorInput } from "@/lib/store-to-input";
 import {
   validarEtapaBoinas,
   validarEtapaCompostos,
-  validarEtapaMaoDeObra,
+  validarEtapaCustosFixos,
   validarEtapaVolume,
   type ErrosCampo,
+  type ErrosPorItem,
 } from "@/lib/step-validation";
 import { track } from "@/lib/analytics";
 import { StepVolume } from "@/components/calculator/StepVolume";
-import { StepMaoDeObra } from "@/components/calculator/StepMaoDeObra";
+import { StepCustosFixos } from "@/components/calculator/StepCustosFixos";
 import { StepCompostos } from "@/components/calculator/StepCompostos";
 import { StepBoinas } from "@/components/calculator/StepBoinas";
 import { Resultado } from "@/components/calculator/Resultado";
@@ -31,6 +32,7 @@ export function Wizard() {
   const { settings, carregando, erro } = useSettings();
   const [fase, setFase] = useState<Fase>("form");
   const [erros, setErros] = useState<ErrosCampo>({});
+  const [errosItens, setErrosItens] = useState<ErrosPorItem>({});
 
   const resultado = useMemo(() => {
     if (!settings) return null;
@@ -40,14 +42,21 @@ export function Wizard() {
 
   function validarEtapaAtual(): boolean {
     let errosEtapa: ErrosCampo = {};
+    let errosLista: ErrosPorItem = {};
+
     if (store.etapa === 1) errosEtapa = validarEtapaVolume(store.volumePreco);
-    if (store.etapa === 2)
-      errosEtapa = validarEtapaMaoDeObra(store.membros, store.numeroPessoasEmpresa);
-    if (store.etapa === 3) errosEtapa = validarEtapaCompostos(store.compostos);
-    if (store.etapa === 4) errosEtapa = validarEtapaBoinas(store.boinas);
+    if (store.etapa === 2) errosEtapa = validarEtapaCustosFixos(store.custosFixos);
+    if (store.etapa === 3) errosLista = validarEtapaCompostos(store.compostos);
+    if (store.etapa === 4) errosLista = validarEtapaBoinas(store.boinas);
 
     setErros(errosEtapa);
-    return Object.keys(errosEtapa).length === 0;
+    setErrosItens(errosLista);
+    return Object.keys(errosEtapa).length === 0 && Object.keys(errosLista).length === 0;
+  }
+
+  function limparErros() {
+    setErros({});
+    setErrosItens({});
   }
 
   function handleContinuar() {
@@ -57,7 +66,7 @@ export function Wizard() {
 
     if (store.etapa < TOTAL_ETAPAS) {
       store.proximaEtapa();
-      setErros({});
+      limparErros();
       return;
     }
 
@@ -67,14 +76,14 @@ export function Wizard() {
   }
 
   function handleVoltar() {
-    setErros({});
+    limparErros();
     store.etapaAnterior();
   }
 
   function handleNovoCalculo() {
     store.reiniciar();
     setFase("form");
-    setErros({});
+    limparErros();
   }
 
   if (carregando) {
@@ -120,11 +129,11 @@ export function Wizard() {
       <ProgressBar etapaAtual={store.etapa} totalEtapas={TOTAL_ETAPAS} />
 
       {store.etapa === 1 && <StepVolume erros={erros} />}
-      {store.etapa === 2 && <StepMaoDeObra erros={erros} />}
-      {store.etapa === 3 && <StepCompostos erros={erros} />}
-      {store.etapa === 4 && <StepBoinas erros={erros} />}
-
-      {erros._geral && <p className="text-sm text-danger">{erros._geral}</p>}
+      {store.etapa === 2 && (
+        <StepCustosFixos erros={erros} horasBaseMensais={settings.labor.horasBaseMensais} />
+      )}
+      {store.etapa === 3 && <StepCompostos erros={errosItens} />}
+      {store.etapa === 4 && <StepBoinas erros={errosItens} />}
 
       <div className="flex gap-3">
         {store.etapa > 1 && (

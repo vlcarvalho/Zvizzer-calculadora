@@ -3,22 +3,26 @@ interface ProgressBarProps {
   totalEtapas: number;
 }
 
+/** Andamento do wizard: compacto e alinhado à esquerda, no topo da tela. */
 export function ProgressBar({ etapaAtual, totalEtapas }: ProgressBarProps) {
-  const percentual = Math.min(100, Math.round((etapaAtual / totalEtapas) * 100));
-
   return (
-    <div className="w-full">
-      <div className="flex items-center justify-between mb-2 text-xs text-muted">
-        <span>
-          Etapa {etapaAtual} de {totalEtapas}
-        </span>
-        <span>{percentual}%</span>
-      </div>
-      <div className="h-1.5 w-full rounded-full bg-surface-2 overflow-hidden">
-        <div
-          className="h-full rounded-full bg-accent transition-all duration-300 ease-out"
-          style={{ width: `${percentual}%` }}
-        />
+    <div className="flex items-center gap-3">
+      <span className="text-xs font-semibold uppercase tracking-wider text-muted">
+        Etapa {etapaAtual} de {totalEtapas}
+      </span>
+      <div className="flex items-center gap-1.5">
+        {Array.from({ length: totalEtapas }, (_, i) => i + 1).map((etapa) => (
+          <span
+            key={etapa}
+            className={`h-1.5 rounded-full transition-all duration-300 ${
+              etapa === etapaAtual
+                ? "w-7 bg-accent"
+                : etapa < etapaAtual
+                  ? "w-4 bg-accent/50"
+                  : "w-4 bg-surface-2"
+            }`}
+          />
+        ))}
       </div>
     </div>
   );

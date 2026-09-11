@@ -2,8 +2,12 @@
 
 import { useCalculatorStore } from "@/lib/store/calculator-store";
 import { Field } from "@/components/ui/Field";
-import { NumericInput } from "@/components/ui/NumericInput";
-import { CurrencyInput } from "@/components/ui/CurrencyInput";
+import { SelectInput } from "@/components/ui/SelectInput";
+import {
+  OPCOES_HORAS_POLIMENTO,
+  OPCOES_POLIMENTOS_MES,
+  OPCOES_PRECO_POLIMENTO,
+} from "@/lib/opcoes";
 
 interface StepVolumeProps {
   erros: Record<string, string>;
@@ -15,20 +19,19 @@ export function StepVolume({ erros }: StepVolumeProps) {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h2 className="text-2xl font-bold">Volume e preço</h2>
-        <p className="mt-1 text-muted">Vamos começar pelo básico da sua operação hoje.</p>
+        <h2 className="text-2xl font-bold">Sua operação hoje</h2>
+        <p className="mt-1 text-muted">Comece pelo volume e pelo preço do seu polimento.</p>
       </div>
 
       <Field
-        label="Quantos polimentos você realiza por mês?"
+        label="Quantos polimentos você realiza por mês em média?"
         error={erros.polimentosMes}
       >
-        <NumericInput
-          value={volumePreco.polimentosMes || ""}
+        <SelectInput
+          value={volumePreco.polimentosMes}
           onChange={(v) => setVolumePreco({ polimentosMes: v })}
-          placeholder="Ex.: 20"
-          suffix="polimentos"
-          autoFocus
+          opcoes={OPCOES_POLIMENTOS_MES}
+          placeholder="Selecione a quantidade"
         />
       </Field>
 
@@ -36,23 +39,23 @@ export function StepVolume({ erros }: StepVolumeProps) {
         label="Quanto você cobra, em média, por polimento?"
         error={erros.precoMedioPolimento}
       >
-        <CurrencyInput
+        <SelectInput
           value={volumePreco.precoMedioPolimento}
           onChange={(v) => setVolumePreco({ precoMedioPolimento: v })}
+          opcoes={OPCOES_PRECO_POLIMENTO}
+          placeholder="Selecione o valor"
         />
       </Field>
 
       <Field
         label="Quanto tempo você leva atualmente para realizar o polimento de um carro?"
-        hint="Em horas. Ex.: 5 (use 5,5 para 5h30)"
         error={erros.horasAtuais}
       >
-        <NumericInput
-          value={volumePreco.horas || ""}
+        <SelectInput
+          value={volumePreco.horas}
           onChange={(v) => setVolumePreco({ horas: v })}
-          placeholder="Ex.: 5"
-          suffix="horas"
-          step={0.5}
+          opcoes={OPCOES_HORAS_POLIMENTO}
+          placeholder="Selecione o tempo"
         />
       </Field>
     </div>

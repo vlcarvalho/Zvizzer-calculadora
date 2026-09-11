@@ -1,13 +1,21 @@
 "use client";
 
+import clsx from "clsx";
 import { useCalculatorStore } from "@/lib/store/calculator-store";
+import type { ErrosPorItem } from "@/lib/step-validation";
+import {
+  OPCOES_CARROS_ATE_TROCA,
+  OPCOES_QUANTIDADE_BOINAS,
+  TIPOS_BOINA,
+} from "@/lib/opcoes";
 import { Field } from "@/components/ui/Field";
-import { NumericInput } from "@/components/ui/NumericInput";
+import { SelectInput } from "@/components/ui/SelectInput";
 import { CurrencyInput } from "@/components/ui/CurrencyInput";
+import { TextInput } from "@/components/ui/TextInput";
 import { Button } from "@/components/ui/Button";
 
 interface StepBoinasProps {
-  erros: Record<string, string>;
+  erros: ErrosPorItem;
 }
 
 export function StepBoinas({ erros }: StepBoinasProps) {
@@ -16,69 +24,97 @@ export function StepBoinas({ erros }: StepBoinasProps) {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h2 className="text-2xl font-bold">Boinas</h2>
+        <h2 className="text-2xl font-bold">Boinas utilizadas</h2>
         <p className="mt-1 text-muted">
-          Conjuntos de boinas usados em revezamento até a substituição.
+          Cadastre cada boina que entra no seu processo de polimento.
         </p>
       </div>
 
       <div className="flex flex-col gap-5">
-        {boinas.map((boina, i) => (
-          <div key={i} className="rounded-2xl border border-border p-4">
-            <div className="mb-3 flex items-center justify-between">
-              <span className="text-sm font-semibold text-muted">
-                Conjunto {i + 1} (opcional o nome)
-              </span>
-              {boinas.length > 1 && (
-                <button
-                  type="button"
-                  onClick={() => removerBoina(i)}
-                  className="text-xs text-danger"
+        {boinas.map((boina, i) => {
+          const errosItem = erros[i] ?? {};
+          return (
+            <div key={i} className="rounded-2xl border border-border p-4">
+              <div className="mb-4 flex items-center justify-between">
+                <span className="text-sm font-semibold text-muted">Boina {i + 1}</span>
+                {boinas.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removerBoina(i)}
+                    className="text-xs text-danger"
+                  >
+                    Remover
+                  </button>
+                )}
+              </div>
+
+              <div className="flex flex-col gap-4">
+                <Field label="Tipo da boina" error={errosItem.tipo}>
+                  <div className="grid grid-cols-2 gap-2">
+                    {TIPOS_BOINA.map((tipo) => (
+                      <button
+                        key={tipo}
+                        type="button"
+                        onClick={() => atualizarBoina(i, { tipo })}
+                        className={clsx(
+                          "rounded-xl border px-4 py-3 text-sm font-medium transition-colors",
+                          boina.tipo === tipo
+                            ? "border-accent bg-accent/10 text-foreground"
+                            : "border-border bg-surface text-muted hover:border-chrome-2"
+                        )}
+                      >
+                        {tipo}
+                      </button>
+                    ))}
+                  </div>
+                </Field>
+
+                <Field label="Nome ou marca da boina" error={errosItem.nome}>
+                  <TextInput
+                    value={boina.nome ?? ""}
+                    onChange={(v) => atualizarBoina(i, { nome: v })}
+                    placeholder="Ex.: Boina de corte 5 pol."
+                  />
+                </Field>
+
+                <Field
+                  label="Quantidade de boinas em revezamento"
+                  error={errosItem.quantidade}
                 >
-                  Remover
-                </button>
-              )}
+                  <SelectInput
+                    value={boina.quantidade}
+                    onChange={(v) => atualizarBoina(i, { quantidade: v })}
+                    opcoes={OPCOES_QUANTIDADE_BOINAS}
+                    placeholder="Selecione a quantidade"
+                  />
+                </Field>
+
+                <Field label="Preço de cada boina" error={errosItem.precoUnitario}>
+                  <CurrencyInput
+                    value={boina.precoUnitario}
+                    onChange={(v) => atualizarBoina(i, { precoUnitario: v })}
+                  />
+                </Field>
+
+                <Field
+                  label="Quantos carros até a troca?"
+                  error={errosItem.durabilidadeCarros}
+                >
+                  <SelectInput
+                    value={boina.durabilidadeCarros}
+                    onChange={(v) => atualizarBoina(i, { durabilidadeCarros: v })}
+                    opcoes={OPCOES_CARROS_ATE_TROCA}
+                    placeholder="Selecione a durabilidade"
+                  />
+                </Field>
+              </div>
             </div>
-            <input
-              type="text"
-              placeholder="Tipo/nome da boina (opcional)"
-              value={boina.nome ?? ""}
-              onChange={(e) => atualizarBoina(i, { nome: e.target.value })}
-              className="mb-4 w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm text-foreground placeholder:text-muted/50 focus:border-accent focus:outline-none"
-            />
-            <div className="flex flex-col gap-4">
-              <Field
-                label="Quantidade de boinas em revezamento"
-                error={i === 0 ? erros.quantidade : undefined}
-              >
-                <NumericInput
-                  value={boina.quantidade || ""}
-                  onChange={(v) => atualizarBoina(i, { quantidade: v })}
-                />
-              </Field>
-              <Field label="Preço de cada boina" error={i === 0 ? erros.precoUnitario : undefined}>
-                <CurrencyInput
-                  value={boina.precoUnitario}
-                  onChange={(v) => atualizarBoina(i, { precoUnitario: v })}
-                />
-              </Field>
-              <Field
-                label="Quantos carros esse conjunto atende antes da troca?"
-                error={i === 0 ? erros.durabilidadeCarros : undefined}
-              >
-                <NumericInput
-                  value={boina.durabilidadeCarros || ""}
-                  onChange={(v) => atualizarBoina(i, { durabilidadeCarros: v })}
-                  suffix="carros"
-                />
-              </Field>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <Button type="button" variant="secondary" onClick={adicionarBoina}>
-        + Adicionar conjunto de boinas
+        + Adicionar boina
       </Button>
     </div>
   );

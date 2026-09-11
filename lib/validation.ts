@@ -18,72 +18,51 @@ export const volumePrecoSchema = z.object({
 });
 export type VolumePrecoInput = z.infer<typeof volumePrecoSchema>;
 
-export const proprietarioSchema = z.object({
-  papel: z.literal("proprietario"),
-  proLabore: z
-    .number({ message: "Informe quanto você precisa retirar por mês." })
-    .positive({ message: "Informe quanto você precisa retirar por mês." }),
-  horasSemanais: z
-    .number({ message: "Informe quantas horas você trabalha por semana." })
-    .positive({ message: "Informe quantas horas você trabalha por semana." }),
+/** Custos fixos mensais da operação (etapa 2). Só o pró-labore/salário é
+ * obrigatório — aluguel, funcionários e demais despesas podem ser 0 numa
+ * operação enxuta (autônomo que trabalha em casa, por exemplo). */
+export const custosFixosSchema = z.object({
+  salarioProLabore: z
+    .number({ message: "Informe quanto você retira por mês (salário ou pró-labore)." })
+    .positive({ message: "Informe quanto você retira por mês (salário ou pró-labore)." }),
+  aluguel: z
+    .number({ message: "Informe o aluguel (pode ser 0)." })
+    .min(0, { message: "O aluguel não pode ser negativo." }),
+  custoFuncionarios: z
+    .number({ message: "Informe o custo com funcionários (pode ser 0)." })
+    .min(0, { message: "O custo com funcionários não pode ser negativo." }),
+  demaisDespesas: z
+    .number({ message: "Informe as demais despesas (pode ser 0)." })
+    .min(0, { message: "As demais despesas não podem ser negativas." }),
 });
-
-export const colaboradorSchema = z.object({
-  papel: z.literal("colaborador"),
-  salarioBruto: z
-    .number({ message: "Informe o salário bruto mensal." })
-    .positive({ message: "Informe o salário bruto mensal." }),
-  beneficios: z
-    .number({ message: "Informe os benefícios mensais (pode ser 0)." })
-    .min(0, { message: "Os benefícios não podem ser negativos." }),
-  horasSemanais: z
-    .number({ message: "Informe a jornada semanal." })
-    .positive({ message: "Informe a jornada semanal." }),
-});
-
-export const empresaSchema = z.object({
-  papel: z.literal("empresa"),
-  custoFixoMensal: z
-    .number({ message: "Informe o custo fixo mensal da empresa." })
-    .positive({ message: "Informe o custo fixo mensal da empresa." }),
-});
-
-export const membroSchema = z.discriminatedUnion("papel", [
-  proprietarioSchema,
-  colaboradorSchema,
-  empresaSchema,
-]);
-export type MembroFormInput = z.infer<typeof membroSchema>;
-
-export const numeroPessoasEmpresaSchema = z
-  .number({ message: "Informe quantas pessoas trabalham na etapa de polimento." })
-  .positive({ message: "Informe quantas pessoas trabalham na etapa de polimento." });
+export type CustosFixosFormInput = z.infer<typeof custosFixosSchema>;
 
 export const compostoSchema = z.object({
-  nome: z.string().optional(),
+  nome: z.string().trim().min(1, { message: "Dê um nome para o composto." }),
   precoEmbalagem: z
-    .number({ message: "Informe o preço da embalagem do composto." })
-    .positive({ message: "Informe o preço da embalagem do composto." }),
+    .number({ message: "Informe o preço do produto." })
+    .positive({ message: "Informe o preço do produto." }),
   quantidadeEmbalagemG: z
-    .number({ message: "Informe a quantidade da embalagem em gramas." })
-    .positive({ message: "A quantidade da embalagem não pode ser zero." }),
+    .number({ message: "Selecione a quantidade da embalagem." })
+    .positive({ message: "Selecione a quantidade da embalagem." }),
   consumoCarroG: z
-    .number({ message: "Informe o consumo médio por carro em gramas." })
-    .positive({ message: "Informe o consumo médio por carro em gramas." }),
+    .number({ message: "Selecione o consumo médio por carro." })
+    .positive({ message: "Selecione o consumo médio por carro." }),
 });
 export type CompostoFormInput = z.infer<typeof compostoSchema>;
 
 export const boinaSchema = z.object({
-  nome: z.string().optional(),
+  tipo: z.string().trim().min(1, { message: "Selecione o tipo da boina." }),
+  nome: z.string().trim().min(1, { message: "Dê um nome para a boina." }),
   quantidade: z
-    .number({ message: "Informe a quantidade de boinas utilizadas." })
-    .positive({ message: "Informe a quantidade de boinas utilizadas." }),
+    .number({ message: "Selecione a quantidade de boinas." })
+    .positive({ message: "Selecione a quantidade de boinas." }),
   precoUnitario: z
     .number({ message: "Informe o preço de cada boina." })
     .positive({ message: "Informe o preço de cada boina." }),
   durabilidadeCarros: z
-    .number({ message: "Informe quantos carros esse conjunto atende." })
-    .positive({ message: "A durabilidade não pode ser zero." }),
+    .number({ message: "Selecione quantos carros esse conjunto atende." })
+    .positive({ message: "Selecione quantos carros esse conjunto atende." }),
 });
 export type BoinaFormInput = z.infer<typeof boinaSchema>;
 
@@ -114,13 +93,7 @@ export const zvizzerSettingsSchema = z.object({
 });
 
 export const laborSettingsSchema = z.object({
-  encargosPatronaisPct: z.number().min(0),
-  fgtsPct: z.number().min(0),
-  decimoTerceiroPct: z.number().min(0),
-  feriasPct: z.number().min(0),
-  adicionalFeriasPct: z.number().min(0),
-  outrosEncargosPct: z.number().min(0),
-  horasBaseMensalEmpresa: z.number().positive(),
+  horasBaseMensais: z.number().positive(),
 });
 
 export const loginSchema = z.object({

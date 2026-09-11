@@ -131,6 +131,16 @@ export function Resultado({
           Fazer novo cálculo
         </button>
       </div>
+
+      {/* A marca aparece só aqui, no fim da jornada — a abertura é neutra. */}
+      <footer className="mt-2 flex flex-col items-center gap-2 border-t border-border pt-8">
+        <span className="text-[10px] uppercase tracking-widest text-muted">
+          Tecnologia alemã
+        </span>
+        <span className="chrome-text text-xl font-black uppercase tracking-[0.35em]">
+          Zvizzer
+        </span>
+      </footer>
     </div>
   );
 }

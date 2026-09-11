@@ -1,7 +1,7 @@
 {
-  "name": "Calculadora de Eficiência de Polimento Zvizzer",
-  "short_name": "Zvizzer Calc",
-  "description": "Descubra quanto sua operação de estética automotiva pode economizar e faturar com o processo Zvizzer.",
+  "name": "Calculadora de Custo Operacional de Polimento",
+  "short_name": "Custo de Polimento",
+  "description": "Descubra o custo real do seu polimento por carro e quanto sua operação pode economizar.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0a0a0a",

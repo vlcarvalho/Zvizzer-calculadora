@@ -32,13 +32,7 @@ export async function GET() {
       tempoProcessoMinutos: zvizzer.tempoProcessoMinutos,
     },
     labor: {
-      encargosPatronaisPct: labor.encargosPatronaisPct,
-      fgtsPct: labor.fgtsPct,
-      decimoTerceiroPct: labor.decimoTerceiroPct,
-      feriasPct: labor.feriasPct,
-      adicionalFeriasPct: labor.adicionalFeriasPct,
-      outrosEncargosPct: labor.outrosEncargosPct,
-      horasBaseMensalEmpresa: labor.horasBaseMensalEmpresa,
+      horasBaseMensais: labor.horasBaseMensais,
     },
   });
 }

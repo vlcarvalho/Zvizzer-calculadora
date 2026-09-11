@@ -15,39 +15,21 @@
 // Tipos de entrada
 // ---------------------------------------------------------------------------
 
-export type PapelMaoDeObra = "proprietario" | "colaborador" | "empresa";
-
-export interface ProprietarioInput {
-  papel: "proprietario";
-  proLabore: number; // R$/mês
-  horasSemanais: number;
+/**
+ * Custos fixos mensais da operação. O usuário informa esses quatro valores
+ * (em vez de escolher um "cenário" de mão de obra) e o custo-hora sai da
+ * soma deles dividida pela referência de horas/mês do admin.
+ */
+export interface CustosFixosInput {
+  salarioProLabore: number; // R$/mês
+  aluguel: number; // R$/mês
+  custoFuncionarios: number; // R$/mês, já com encargos
+  demaisDespesas: number; // R$/mês (energia, água, internet, contabilidade...)
 }
-
-export interface ColaboradorInput {
-  papel: "colaborador";
-  salarioBruto: number; // R$/mês
-  beneficios: number; // R$/mês
-  horasSemanais: number;
-}
-
-/** Cenário "Empresa com vários funcionários": em vez de somar salário por
- * salário, usa o custo fixo mensal total da operação dividido por uma
- * referência de horas/mês (spec do cliente: 220h — configurável no admin). */
-export interface EmpresaInput {
-  papel: "empresa";
-  custoFixoMensal: number; // R$/mês
-}
-
-export type MembroInput = ProprietarioInput | ColaboradorInput | EmpresaInput;
 
 export interface LaborParams {
-  encargosPatronaisPct: number;
-  fgtsPct: number;
-  decimoTerceiroPct: number;
-  feriasPct: number;
-  adicionalFeriasPct: number;
-  outrosEncargosPct: number;
-  horasBaseMensalEmpresa: number;
+  /** Horas/mês usadas para transformar custo fixo mensal em custo-hora. */
+  horasBaseMensais: number;
 }
 
 export interface CompostoInput {
@@ -59,6 +41,7 @@ export interface CompostoInput {
 
 export interface BoinaInput {
   nome?: string;
+  tipo?: string; // Lã, Espuma, Híbrida ou Microfibra
   quantidade: number;
   precoUnitario: number;
   durabilidadeCarros: number;
@@ -78,93 +61,45 @@ export interface CalculatorInput {
   polimentosMes: number;
   precoMedioPolimento: number;
   horasAtuais: number; // horas decimais (ex.: 5.5 = 5h30)
-  equipe: MembroInput[]; // 1 membro = proprietário/colaborador/empresa único; >1 = modo equipe
+  custosFixos: CustosFixosInput;
   compostos: CompostoInput[];
   boinas: BoinaInput[];
-  /** Número de pessoas trabalhando juntas na etapa de polimento — usado para
-   * dividir proporcionalmente o tempo do processo Zvizzer. Por padrão é
-   * `equipe.length`; informe explicitamente quando o custo é único mas a
-   * operação tem mais gente (ex.: cenário "empresa com vários
-   * funcionários", onde o custo fixo não é decomposto pessoa a pessoa). */
+  /** Número de pessoas trabalhando juntas na etapa de polimento — divide
+   * proporcionalmente o tempo do processo Zvizzer. Hoje a calculadora não
+   * pergunta isso (o custo é informado como custo fixo da operação, sem
+   * decompor por pessoa), então o padrão é 1. */
   numeroPessoasPolimento?: number;
 }
 
 // ---------------------------------------------------------------------------
-// Constantes
+// Custo-hora da operação
 // ---------------------------------------------------------------------------
 
-/** Semanas médias por mês, conforme especificado no documento-fonte. */
-export const SEMANAS_POR_MES = 4.33;
-
-// ---------------------------------------------------------------------------
-// Custo-hora de mão de obra
-// ---------------------------------------------------------------------------
-
-export function horasMensais(horasSemanais: number): number {
-  return horasSemanais * SEMANAS_POR_MES;
-}
-
-export function custoHoraProprietario(membro: ProprietarioInput): number {
-  const horas = horasMensais(membro.horasSemanais);
-  if (horas <= 0) return 0;
-  return membro.proLabore / horas;
-}
-
-export function custoMensalColaborador(
-  membro: ColaboradorInput,
-  labor: LaborParams
-): number {
-  const percentualTotal =
-    labor.encargosPatronaisPct +
-    labor.fgtsPct +
-    labor.decimoTerceiroPct +
-    labor.feriasPct +
-    labor.adicionalFeriasPct +
-    labor.outrosEncargosPct;
-  const encargos = membro.salarioBruto * percentualTotal;
-  return membro.salarioBruto + membro.beneficios + encargos;
-}
-
-export function custoHoraColaborador(
-  membro: ColaboradorInput,
-  labor: LaborParams
-): number {
-  const horas = horasMensais(membro.horasSemanais);
-  if (horas <= 0) return 0;
-  return custoMensalColaborador(membro, labor) / horas;
-}
-
-/** Custo fixo mensal da operação dividido pela referência de horas/mês
- * configurada no admin (spec do cliente: 220h por padrão). */
-export function custoHoraEmpresa(membro: EmpresaInput, labor: LaborParams): number {
-  if (labor.horasBaseMensalEmpresa <= 0) return 0;
-  return membro.custoFixoMensal / labor.horasBaseMensalEmpresa;
-}
-
-export function custoHoraMembro(membro: MembroInput, labor: LaborParams): number {
-  if (membro.papel === "proprietario") return custoHoraProprietario(membro);
-  if (membro.papel === "colaborador") return custoHoraColaborador(membro, labor);
-  return custoHoraEmpresa(membro, labor);
+/** Soma dos custos fixos mensais informados pelo usuário. */
+export function custoFixoMensalTotal(custos: CustosFixosInput): number {
+  return (
+    custos.salarioProLabore +
+    custos.aluguel +
+    custos.custoFuncionarios +
+    custos.demaisDespesas
+  );
 }
 
 /**
- * Custo-hora efetivo da mão de obra envolvida no polimento.
+ * Custo-hora da operação: custo fixo mensal total dividido pela referência
+ * de horas/mês configurada no admin (padrão de mercado: 220h).
  *
- * Modo único (1 membro): custo-hora daquela pessoa.
- * Modo equipe (>1 membro): soma do custo-hora de todas as pessoas
- * efetivamente envolvidas na etapa de polimento (spec §5 "Se for equipe").
- *
- * Este mesmo valor é reutilizado no cenário Zvizzer (spec §9: "não utilizar
- * um custo-hora Zvizzer fixo... usar exatamente o mesmo custo-hora calculado
- * para aquele usuário"), inclusive quando o usuário está no modo equipe —
- * garantindo que a comparação atual-vs-Zvizzer seja sempre feita com a
- * mesma equipe/custo, só variando o tempo do processo.
+ * Este mesmo custo-hora é reaproveitado no cenário Zvizzer (spec §9: "não
+ * utilizar um custo-hora Zvizzer fixo... usar exatamente o mesmo custo-hora
+ * calculado para aquele usuário"), de modo que a comparação varie só no
+ * tempo do processo e nos insumos.
  */
-export function custoHoraEfetivo(
-  equipe: MembroInput[],
+export function custoHoraOperacao(
+  custos: CustosFixosInput,
   labor: LaborParams
 ): number {
-  return equipe.reduce((soma, membro) => soma + custoHoraMembro(membro, labor), 0);
+  if (labor.horasBaseMensais <= 0) return 0;
+  return custoFixoMensalTotal(custos) / labor.horasBaseMensais;
 }
 
 // ---------------------------------------------------------------------------
@@ -220,6 +155,7 @@ export function custoBoinaZvizzer(params: ZvizzerParams): number {
 // ---------------------------------------------------------------------------
 
 export interface CalculatorResult {
+  custoFixoMensal: number;
   custoHoraEfetivo: number;
   valorVendaHora: number;
 
@@ -254,18 +190,16 @@ export function calcular(
   zvizzer: ZvizzerParams,
   labor: LaborParams
 ): CalculatorResult {
-  const custoHora = custoHoraEfetivo(input.equipe, labor);
+  const custoHora = custoHoraOperacao(input.custosFixos, labor);
   const vendaHora = valorVendaHora(input.precoMedioPolimento, input.horasAtuais);
 
-  // Quantas pessoas efetivamente polem o carro juntas. O tempo do processo
-  // Zvizzer configurado no admin (`tempoProcessoMinutos`) é a referência para
-  // 1 pessoa sozinha; com mais gente trabalhando ao mesmo tempo no mesmo
-  // carro, o tempo de parede diminui proporcionalmente (ajuste pedido pela
-  // Zvizzer: 2 pessoas ≈ metade do tempo, 3 pessoas ≈ um terço, etc.).
-  // Por padrão é o tamanho da equipe; o cenário "empresa" informa esse
-  // número explicitamente, já que o custo ali não é decomposto pessoa a
-  // pessoa (ver `numeroPessoasPolimento` em CalculatorInput).
-  const numeroPessoas = Math.max(1, input.numeroPessoasPolimento ?? input.equipe.length);
+  // Quantas pessoas polem o carro juntas. O tempo do processo Zvizzer
+  // configurado no admin (`tempoProcessoMinutos`) é a referência para 1
+  // pessoa; com mais gente trabalhando ao mesmo tempo no mesmo carro, o
+  // tempo de parede cai proporcionalmente. A calculadora não pergunta isso
+  // hoje (o custo entra como custo fixo da operação), então fica em 1 —
+  // basta voltar a passar `numeroPessoasPolimento` para reativar.
+  const numeroPessoas = Math.max(1, input.numeroPessoasPolimento ?? 1);
   const horasZvizzer = zvizzer.tempoProcessoMinutos / 60 / numeroPessoas;
 
   // --- Cenário atual ---
@@ -304,6 +238,7 @@ export function calcular(
   const impactoEconomicoPotencial = economiaMensal + capacidadeFaturamento;
 
   return {
+    custoFixoMensal: custoFixoMensalTotal(input.custosFixos),
     custoHoraEfetivo: custoHora,
     valorVendaHora: vendaHora,
     numeroPessoas,

@@ -8,15 +8,17 @@ const inter = Inter({
   weight: ["400", "500", "600", "700", "800", "900"],
 });
 
+// Título e descrição propositalmente neutros: a ferramenta se apresenta como
+// independente, sem viés de marca (a marca aparece só no resultado).
 export const metadata: Metadata = {
-  title: "Calculadora de Eficiência de Polimento | Zvizzer",
+  title: "Calculadora de Custo Operacional de Polimento",
   description:
-    "Descubra quanto sua operação de estética automotiva pode economizar e faturar com o processo Zvizzer.",
+    "Descubra o custo real do seu polimento por carro e quanto sua operação de estética automotiva pode economizar.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Zvizzer Calculadora",
+    title: "Custo de Polimento",
   },
 };
 

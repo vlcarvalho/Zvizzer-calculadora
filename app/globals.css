@@ -53,3 +53,23 @@ body {
 .tabular-nums {
   font-variant-numeric: tabular-nums;
 }
+
+/* Rotação bem lenta dos anéis da tela de abertura (remete à politriz). */
+@keyframes girar-lento {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.anel-girando {
+  animation: girar-lento 70s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .anel-girando {
+    animation: none;
+  }
+}
