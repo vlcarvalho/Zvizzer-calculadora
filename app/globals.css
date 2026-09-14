@@ -54,31 +54,26 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* Pino e balão do mapa de revendedores (Leaflet) no tema escuro. */
-.pino-revendedor {
-  display: block;
-  width: 18px;
-  height: 18px;
-  border-radius: 9999px;
-  background: var(--accent);
-  border: 3px solid var(--background);
-  box-shadow: 0 0 0 2px var(--accent), 0 0 14px rgba(166, 226, 46, 0.6);
+/* Balão do mapa de revendedores (Google Maps InfoWindow) no tema escuro. O
+   Google sempre desenha um fundo branco atrás do conteúdo por padrão — essas
+   três regras reescrevem esse fundo em vez do conteúdo em si. */
+.gm-style-iw-chrome,
+.gm-style-iw-c,
+.gm-style-iw-d {
+  background: var(--surface) !important;
 }
 
-.leaflet-container {
-  background: var(--surface-2);
-  font-family: inherit;
+.gm-style-iw-c {
+  border: 1px solid var(--border) !important;
+  padding: 12px !important;
 }
 
-.leaflet-popup-content-wrapper,
-.leaflet-popup-tip {
-  background: var(--surface);
-  color: var(--foreground);
-  border: 1px solid var(--border);
+.gm-style-iw-tail::after {
+  background: var(--surface) !important;
 }
 
-.leaflet-popup-content {
-  margin: 12px 14px;
+.gm-ui-hover-effect > span {
+  background-color: var(--muted) !important;
 }
 
 .popup-revendedor {

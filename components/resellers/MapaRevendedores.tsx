@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { carregarGoogleMaps } from "@/lib/google-maps-loader";
 import { montarLinkWhatsapp, type DadosMensagemWhatsapp } from "@/lib/whatsapp";
 
 export interface RevendedorNoMapa {
@@ -23,12 +22,37 @@ interface MapaRevendedoresProps {
 }
 
 /** Enquadra o Brasil inteiro quando não dá para calcular os limites. */
-const CENTRO_BRASIL: L.LatLngExpression = [-14.235, -51.9253];
+const CENTRO_BRASIL = { lat: -14.235, lng: -51.9253 };
+
+/** Tema escuro para casar com o resto do app — a Maps JavaScript API aceita
+ * um array de regras de estilo em vez de um mapa claro padrão. */
+const ESTILO_ESCURO: google.maps.MapTypeStyle[] = [
+  { elementType: "geometry", stylers: [{ color: "#1c1c1c" }] },
+  { elementType: "labels.text.stroke", stylers: [{ color: "#0a0a0a" }] },
+  { elementType: "labels.text.fill", stylers: [{ color: "#9a9a9a" }] },
+  { featureType: "administrative.country", elementType: "geometry.stroke", stylers: [{ color: "#2a2a2a" }] },
+  { featureType: "administrative.province", elementType: "geometry.stroke", stylers: [{ color: "#2a2a2a" }] },
+  { featureType: "landscape", elementType: "geometry", stylers: [{ color: "#141414" }] },
+  { featureType: "poi", stylers: [{ visibility: "off" }] },
+  { featureType: "road", elementType: "geometry", stylers: [{ color: "#2a2a2a" }] },
+  { featureType: "road", elementType: "labels", stylers: [{ visibility: "off" }] },
+  { featureType: "transit", stylers: [{ visibility: "off" }] },
+  { featureType: "water", elementType: "geometry", stylers: [{ color: "#0f1a10" }] },
+];
+
+const ICONE_PINO = {
+  path: "M0,0 m-9,0 a9,9 0 1,0 18,0 a9,9 0 1,0 -18,0",
+  fillColor: "#a6e22e",
+  fillOpacity: 1,
+  strokeColor: "#0a0a0a",
+  strokeWeight: 3,
+  scale: 1,
+};
 
 /**
- * Mapa com um pino por revendedor. Usa Leaflet + OpenStreetMap: gratuito e
- * sem chave de API. Ao clicar no pino abre um balão com os dados da loja e o
- * botão de WhatsApp.
+ * Mapa com um pino por revendedor, via Google Maps JavaScript API (chave
+ * restrita por domínio no Google Cloud Console). Clicar no pino abre um
+ * balão com os dados da loja e o botão de WhatsApp.
  */
 export function MapaRevendedores({
   revendedores,
@@ -36,8 +60,10 @@ export function MapaRevendedores({
   onWhatsappClick,
 }: MapaRevendedoresProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const mapaRef = useRef<L.Map | null>(null);
-  const camadaPinosRef = useRef<L.LayerGroup | null>(null);
+  const mapaRef = useRef<google.maps.Map | null>(null);
+  const marcadoresRef = useRef<google.maps.Marker[]>([]);
+  const infoWindowRef = useRef<google.maps.InfoWindow | null>(null);
+  const [erro, setErro] = useState<string | null>(null);
 
   const comCoordenadas = useMemo(
     () =>
@@ -50,86 +76,106 @@ export function MapaRevendedores({
 
   // Cria o mapa uma única vez.
   useEffect(() => {
-    if (!containerRef.current || mapaRef.current) return;
+    let cancelado = false;
 
-    const mapa = L.map(containerRef.current, {
-      center: CENTRO_BRASIL,
-      zoom: 4,
-      scrollWheelZoom: false, // não sequestra o scroll da página no mobile
-      attributionControl: true,
-    });
+    carregarGoogleMaps()
+      .then((maps) => {
+        if (cancelado || !containerRef.current || mapaRef.current) return;
 
-    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      maxZoom: 18,
-      attribution: "&copy; OpenStreetMap",
-    }).addTo(mapa);
-
-    camadaPinosRef.current = L.layerGroup().addTo(mapa);
-    mapaRef.current = mapa;
+        mapaRef.current = new maps.Map(containerRef.current, {
+          center: CENTRO_BRASIL,
+          zoom: 4,
+          gestureHandling: "cooperative", // não sequestra o scroll da página
+          styles: ESTILO_ESCURO,
+          streetViewControl: false,
+          mapTypeControl: false,
+          fullscreenControl: false,
+        });
+        infoWindowRef.current = new maps.InfoWindow();
+        // Força o redesenho: às vezes o mapa nasce numa coluna ainda com
+        // largura 0 (ex.: layout em transição) e fica com metade cinza.
+        setTimeout(() => {
+          if (mapaRef.current) maps.event.trigger(mapaRef.current, "resize");
+        }, 0);
+      })
+      .catch((e: Error) => {
+        if (!cancelado) setErro(e.message);
+      });
 
     return () => {
-      mapa.remove();
-      mapaRef.current = null;
-      camadaPinosRef.current = null;
+      cancelado = true;
     };
   }, []);
 
   // Redesenha os pinos sempre que a lista filtrada muda.
   useEffect(() => {
     const mapa = mapaRef.current;
-    const camada = camadaPinosRef.current;
-    if (!mapa || !camada) return;
+    if (!mapa || !window.google?.maps) return;
+    const maps = window.google.maps;
 
-    camada.clearLayers();
-
-    comCoordenadas.forEach((revendedor) => {
-      const pino = L.divIcon({
-        className: "",
-        html: `<span class="pino-revendedor"></span>`,
-        iconSize: [18, 18],
-        iconAnchor: [9, 9],
-        popupAnchor: [0, -10],
+    marcadoresRef.current.forEach((m) => m.setMap(null));
+    marcadoresRef.current = comCoordenadas.map((revendedor) => {
+      const marcador = new maps.Marker({
+        position: { lat: revendedor.latitude, lng: revendedor.longitude },
+        map: mapa,
+        icon: ICONE_PINO,
+        title: revendedor.nome,
       });
 
-      const link = montarLinkWhatsapp(revendedor.whatsapp, dadosMensagem);
-      const logo = revendedor.logoUrl
-        ? `<img src="${escaparHtml(revendedor.logoUrl)}" alt="${escaparHtml(revendedor.nome)}" class="logo-revendedor" />`
-        : "";
+      marcador.addListener("click", () => {
+        const infoWindow = infoWindowRef.current;
+        if (!infoWindow) return;
 
-      const popup = `
-        <div class="popup-revendedor">
-          ${logo}
-          <strong>${escaparHtml(revendedor.nome)}</strong>
-          <span>${escaparHtml(revendedor.cidade)} — ${escaparHtml(revendedor.estado)}</span>
-          <a href="${link}" target="_blank" rel="noopener noreferrer" data-revendedor="${revendedor.id}">
-            Falar no WhatsApp
-          </a>
-        </div>
-      `;
+        const link = montarLinkWhatsapp(revendedor.whatsapp, dadosMensagem);
+        const logo = revendedor.logoUrl
+          ? `<img src="${escaparHtml(revendedor.logoUrl)}" alt="${escaparHtml(revendedor.nome)}" class="logo-revendedor" />`
+          : "";
 
-      L.marker([revendedor.latitude, revendedor.longitude], { icon: pino })
-        .bindPopup(popup)
-        .on("popupopen", (evento) => {
-          const link = evento.popup
-            .getElement()
-            ?.querySelector<HTMLAnchorElement>("a[data-revendedor]");
-          link?.addEventListener("click", () => onWhatsappClick?.(revendedor), { once: true });
-        })
-        .addTo(camada);
+        infoWindow.setContent(`
+          <div class="popup-revendedor">
+            ${logo}
+            <strong>${escaparHtml(revendedor.nome)}</strong>
+            <span>${escaparHtml(revendedor.cidade)} — ${escaparHtml(revendedor.estado)}</span>
+            <a href="${link}" target="_blank" rel="noopener noreferrer" data-revendedor="${revendedor.id}">
+              Falar no WhatsApp
+            </a>
+          </div>
+        `);
+        infoWindow.open({ map: mapa, anchor: marcador });
+
+        maps.event.addListenerOnce(infoWindow, "domready", () => {
+          const el = document.querySelector<HTMLAnchorElement>(
+            `a[data-revendedor="${revendedor.id}"]`
+          );
+          el?.addEventListener("click", () => onWhatsappClick?.(revendedor), { once: true });
+        });
+      });
+
+      return marcador;
     });
 
     if (comCoordenadas.length === 1) {
       const unico = comCoordenadas[0];
-      mapa.setView([unico.latitude, unico.longitude], 11);
+      mapa.setCenter({ lat: unico.latitude, lng: unico.longitude });
+      mapa.setZoom(11);
     } else if (comCoordenadas.length > 1) {
-      mapa.fitBounds(
-        L.latLngBounds(comCoordenadas.map((r) => [r.latitude, r.longitude] as [number, number])),
-        { padding: [40, 40], maxZoom: 12 }
-      );
+      const bounds = new maps.LatLngBounds();
+      comCoordenadas.forEach((r) => bounds.extend({ lat: r.latitude, lng: r.longitude }));
+      mapa.fitBounds(bounds, 40);
     } else {
-      mapa.setView(CENTRO_BRASIL, 4);
+      mapa.setCenter(CENTRO_BRASIL);
+      mapa.setZoom(4);
     }
   }, [comCoordenadas, dadosMensagem, onWhatsappClick]);
+
+  if (erro) {
+    return (
+      <div className="flex h-[320px] items-center justify-center rounded-2xl border border-border bg-surface px-6 text-center text-sm text-muted sm:h-[420px]">
+        Não foi possível carregar o mapa agora. A lista de revendedores abaixo continua
+        funcionando normalmente.
+      </div>
+    );
+  }
 
   return (
     <div className="overflow-hidden rounded-2xl border border-border">

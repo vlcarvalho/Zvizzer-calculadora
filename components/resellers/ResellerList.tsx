@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import { montarLinkWhatsapp, type DadosMensagemWhatsapp } from "@/lib/whatsapp";
 import { track } from "@/lib/analytics";
 
-// O Leaflet mexe direto no DOM, então só pode carregar no navegador.
+// Mexe direto no DOM (e carrega o script do Google), então só pode rodar no navegador.
 const MapaRevendedores = dynamic(
   () => import("@/components/resellers/MapaRevendedores").then((m) => m.MapaRevendedores),
   {
