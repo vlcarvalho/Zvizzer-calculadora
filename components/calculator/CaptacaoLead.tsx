@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import type { CalculatorResult } from "@/lib/calculations";
+import { POLITICA_VERSAO, TEXTO_CONSENTIMENTO } from "@/lib/privacidade";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { MasterTrainers } from "@/components/calculator/MasterTrainers";
@@ -20,11 +22,20 @@ interface CaptacaoLeadProps {
 export function CaptacaoLead({ resultado, polimentosMes, onConcluir }: CaptacaoLeadProps) {
   const [email, setEmail] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
+  const [aceitou, setAceitou] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
 
   async function handleEnviar(e: React.FormEvent) {
     e.preventDefault();
+
+    // O consentimento precisa ser um ato afirmativo — nada de caixa
+    // pré-marcada ou aceite implícito ao enviar (LGPD art. 8º).
+    if (!aceitou) {
+      setErro("Para receber o contato, marque a autorização de uso dos seus dados.");
+      return;
+    }
+
     setEnviando(true);
     setErro(null);
 
@@ -34,6 +45,8 @@ export function CaptacaoLead({ resultado, polimentosMes, onConcluir }: CaptacaoL
       body: JSON.stringify({
         email,
         whatsapp,
+        politicaVersao: POLITICA_VERSAO,
+        consentimentoTexto: TEXTO_CONSENTIMENTO,
         polimentosMes,
         custoAtualPorCarro: resultado.custoOperacionalAtual,
         custoZvizzerPorCarro: resultado.custoOperacionalZvizzer,
@@ -91,15 +104,35 @@ export function CaptacaoLead({ resultado, polimentosMes, onConcluir }: CaptacaoL
           />
         </Field>
 
+        <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-border bg-surface/70 p-4">
+          <input
+            type="checkbox"
+            checked={aceitou}
+            onChange={(e) => setAceitou(e.target.checked)}
+            className="mt-0.5 h-5 w-5 shrink-0 accent-[var(--accent)]"
+          />
+          <span className="text-[13px] leading-relaxed text-muted">
+            {TEXTO_CONSENTIMENTO}{" "}
+            <Link
+              href="/privacidade"
+              target="_blank"
+              className="text-accent underline underline-offset-2"
+            >
+              Ler a Política de Privacidade
+            </Link>
+            .
+          </span>
+        </label>
+
         {erro && <p className="text-sm text-danger">{erro}</p>}
 
-        <Button type="submit" disabled={enviando}>
+        <Button type="submit" disabled={enviando || !aceitou}>
           {enviando ? "Enviando…" : "Quero receber e ver os revendedores"}
         </Button>
 
         <p className="text-center text-[11px] leading-relaxed text-muted">
-          Ao enviar, você autoriza a Zvizzer a entrar em contato. Usamos seus dados só para isso
-          e você pode pedir a exclusão quando quiser.
+          Os valores que você digitou no cálculo ficam só no seu navegador — não são enviados
+          para a gente.
         </p>
 
         <button

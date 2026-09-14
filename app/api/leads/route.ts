@@ -7,6 +7,14 @@ import { sanitizarWhatsapp } from "@/lib/whatsapp";
 const leadSchema = z.object({
   email: z.email({ message: "Informe um e-mail válido." }),
   whatsapp: z.string().min(10, { message: "Informe um WhatsApp válido com DDD." }),
+  // Prova do consentimento: o servidor só grava se vier acompanhado da versão
+  // da política e do texto que a pessoa aceitou.
+  politicaVersao: z
+    .string({ message: "Consentimento ausente." })
+    .min(1, { message: "Consentimento ausente." }),
+  consentimentoTexto: z
+    .string({ message: "Consentimento ausente." })
+    .min(1, { message: "Consentimento ausente." }),
   polimentosMes: z.number().int().min(0),
   custoAtualPorCarro: z.number(),
   custoZvizzerPorCarro: z.number(),

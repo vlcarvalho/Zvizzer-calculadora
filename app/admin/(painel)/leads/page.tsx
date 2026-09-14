@@ -7,6 +7,8 @@ interface Lead {
   id: string;
   email: string;
   whatsapp: string;
+  consentimentoEm: string;
+  politicaVersao: string;
   polimentosMes: number;
   custoAtualPorCarro: number;
   custoZvizzerPorCarro: number;
@@ -69,6 +71,7 @@ export default function AdminLeadsPage() {
                 <th className="px-4 py-3 font-medium">Custo atual</th>
                 <th className="px-4 py-3 font-medium">Economia/mês</th>
                 <th className="px-4 py-3 font-medium">Horas/mês</th>
+                <th className="px-4 py-3 font-medium">Consentimento</th>
                 <th className="px-4 py-3" />
               </tr>
             </thead>
@@ -89,6 +92,17 @@ export default function AdminLeadsPage() {
                   </td>
                   <td className="px-4 py-3 tabular-nums">
                     {formatarHoras(lead.horasLiberadasMes)}
+                  </td>
+                  <td className="px-4 py-3 text-xs text-muted">
+                    {lead.politicaVersao === "pre-consentimento" ? (
+                      <span className="text-danger">sem registro</span>
+                    ) : (
+                      <>
+                        {new Date(lead.consentimentoEm).toLocaleString("pt-BR")}
+                        <br />
+                        política {lead.politicaVersao}
+                      </>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-right">
                     <button

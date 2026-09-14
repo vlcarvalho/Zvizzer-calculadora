@@ -25,6 +25,13 @@ export default function LandingPage() {
         >
           Calcule Agora Gratuitamente!
         </Link>
+
+        <Link
+          href="/privacidade"
+          className="mt-10 text-xs text-muted/70 underline underline-offset-4 hover:text-muted"
+        >
+          Política de Privacidade
+        </Link>
       </div>
     </main>
   );

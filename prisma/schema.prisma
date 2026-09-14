@@ -69,6 +69,13 @@ model Lead {
   email    String
   whatsapp String
 
+  /// Prova do consentimento (LGPD art. 8º): quando foi dado e qual versão do
+  /// texto/política a pessoa aceitou. Sem isso não há como demonstrar que o
+  /// consentimento foi livre, informado e inequívoco.
+  consentimentoEm     DateTime @default(now())
+  politicaVersao      String
+  consentimentoTexto  String
+
   // Retrato do resultado no momento do envio
   polimentosMes        Int
   custoAtualPorCarro   Float
