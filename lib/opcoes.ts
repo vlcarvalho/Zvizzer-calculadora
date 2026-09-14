@@ -37,6 +37,12 @@ export const OPCOES_HORAS_POLIMENTO: OpcaoNumerica[] = faixa(0.5, 20, 0.5).map((
   label: formatarHoras(v),
 }));
 
+/** 1 a 4 profissionais polindo o mesmo carro ao mesmo tempo. */
+export const OPCOES_PROFISSIONAIS: OpcaoNumerica[] = faixa(1, 4, 1).map((v) => ({
+  valor: v,
+  label: v === 1 ? "1 profissional" : `${v} profissionais`,
+}));
+
 /** Embalagens de composto disponíveis no mercado. */
 export const OPCOES_EMBALAGEM_G: OpcaoNumerica[] = [
   { valor: 250, label: "250 g" },

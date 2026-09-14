@@ -87,6 +87,17 @@ body {
   gap: 4px;
 }
 
+.popup-revendedor .logo-revendedor {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.05);
+  object-fit: contain;
+  padding: 4px;
+  margin-bottom: 4px;
+}
+
 .popup-revendedor strong {
   font-size: 14px;
 }

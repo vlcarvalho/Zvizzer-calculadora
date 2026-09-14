@@ -12,6 +12,7 @@ export async function GET() {
       cidade: true,
       estado: true,
       whatsapp: true,
+      logoUrl: true,
       latitude: true,
       longitude: true,
     },

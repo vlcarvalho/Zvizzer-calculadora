@@ -7,6 +7,7 @@ import {
   OPCOES_HORAS_POLIMENTO,
   OPCOES_POLIMENTOS_MES,
   OPCOES_PRECO_POLIMENTO,
+  OPCOES_PROFISSIONAIS,
 } from "@/lib/opcoes";
 
 interface StepVolumeProps {
@@ -56,6 +57,19 @@ export function StepVolume({ erros }: StepVolumeProps) {
           onChange={(v) => setVolumePreco({ horas: v })}
           opcoes={OPCOES_HORAS_POLIMENTO}
           placeholder="Selecione o tempo"
+        />
+      </Field>
+
+      <Field
+        label="Quantos profissionais trabalham no polimento ao mesmo tempo?"
+        hint="Pessoas polindo o mesmo carro simultaneamente."
+        error={erros.profissionaisSimultaneos}
+      >
+        <SelectInput
+          value={volumePreco.profissionaisSimultaneos}
+          onChange={(v) => setVolumePreco({ profissionaisSimultaneos: v })}
+          opcoes={OPCOES_PROFISSIONAIS}
+          placeholder="Selecione a quantidade"
         />
       </Field>
     </div>

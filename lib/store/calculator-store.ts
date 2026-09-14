@@ -9,6 +9,9 @@ export interface VolumePrecoState {
   precoMedioPolimento: number;
   /** Horas do polimento atual (decimal — ex.: 5,5 = 5h30). */
   horas: number;
+  /** Quantas pessoas polem o mesmo carro ao mesmo tempo (1 a 4). Divide
+   * proporcionalmente o tempo do processo Zvizzer. */
+  profissionaisSimultaneos: number;
 }
 
 interface CalculatorState {
@@ -53,7 +56,12 @@ const boinaPadrao: BoinaInput = {
 
 const estadoInicial = {
   etapa: 1,
-  volumePreco: { polimentosMes: 0, precoMedioPolimento: 0, horas: 0 },
+  volumePreco: {
+    polimentosMes: 0,
+    precoMedioPolimento: 0,
+    horas: 0,
+    profissionaisSimultaneos: 0,
+  },
   custosFixos: {
     salarioProLabore: 0,
     aluguel: 0,
@@ -104,7 +112,7 @@ export const useCalculatorStore = create<CalculatorState>()(
     }),
     {
       name: "zvizzer-calculadora-progresso", // spec §25: persistência temporária
-      version: 2, // o formato mudou (custos fixos no lugar dos cenários de mão de obra)
+      version: 3, // etapa 1 ganhou o número de profissionais simultâneos
     }
   )
 );

@@ -16,6 +16,8 @@ export function converterParaCalculatorInput(store: {
     polimentosMes: store.volumePreco.polimentosMes,
     precoMedioPolimento: store.volumePreco.precoMedioPolimento,
     horasAtuais: store.volumePreco.horas,
+    // Mais gente polindo junto = tempo de parede menor no processo Zvizzer.
+    numeroPessoasPolimento: store.volumePreco.profissionaisSimultaneos,
     custosFixos: store.custosFixos,
     compostos: store.compostos,
     boinas: store.boinas,

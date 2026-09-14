@@ -94,6 +94,9 @@ model Reseller {
   cidade    String
   estado    String // sigla UF (ex.: SP, RJ)
   whatsapp  String // formato E.164 sem símbolos, ex.: 5511999999999
+  cep       String?
+  /// Logo da loja, servida de /public/revendedores/.
+  logoUrl   String?
   /// Coordenadas para o pino no mapa. Preenchidas no admin (há um botão que
   /// busca automaticamente a partir de cidade + estado).
   latitude  Float?

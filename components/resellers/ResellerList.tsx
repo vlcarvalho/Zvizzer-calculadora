@@ -24,6 +24,7 @@ interface Reseller {
   cidade: string;
   estado: string;
   whatsapp: string;
+  logoUrl: string | null;
   latitude: number | null;
   longitude: number | null;
 }
@@ -135,11 +136,22 @@ export function ResellerList({ dadosMensagem }: ResellerListProps) {
               key={r.id}
               className="flex flex-col gap-3 rounded-2xl border border-border bg-surface p-4 sm:flex-row sm:items-center sm:justify-between"
             >
-              <div>
-                <p className="font-semibold">{r.nome}</p>
-                <p className="text-sm text-muted">
-                  {r.cidade} — {r.estado}
-                </p>
+              <div className="flex items-center gap-3">
+                {r.logoUrl && (
+                  // Logo da loja, servida da pasta public.
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={r.logoUrl}
+                    alt={r.nome}
+                    className="h-12 w-12 shrink-0 rounded-xl border border-border bg-white/5 object-contain p-1"
+                  />
+                )}
+                <div>
+                  <p className="font-semibold">{r.nome}</p>
+                  <p className="text-sm text-muted">
+                    {r.cidade} — {r.estado}
+                  </p>
+                </div>
               </div>
               <a
                 href={montarLinkWhatsapp(r.whatsapp, dadosMensagem)}

@@ -32,27 +32,42 @@ async function main() {
     },
   });
 
-  // Revendedores de exemplo (fictícios) — o usuário substitui pela lista real
-  // via painel admin antes de publicar.
-  const revendedoresExemplo = [
-    { nome: "Auto Shine Detailing", cidade: "São Paulo", estado: "SP", whatsapp: "5511987654321", latitude: -23.5505, longitude: -46.6333 },
-    { nome: "Prime Car Care", cidade: "Campinas", estado: "SP", whatsapp: "5519987654321", latitude: -22.9056, longitude: -47.0608 },
-    { nome: "Detail House RJ", cidade: "Rio de Janeiro", estado: "RJ", whatsapp: "5521987654321", latitude: -22.9068, longitude: -43.1729 },
-    { nome: "Sul Detailing Studio", cidade: "Porto Alegre", estado: "RS", whatsapp: "5551987654321", latitude: -30.0346, longitude: -51.2177 },
-    { nome: "Paraná Polimentos", cidade: "Curitiba", estado: "PR", whatsapp: "5541987654321", latitude: -25.4284, longitude: -49.2733 },
-    { nome: "Bahia Car Detail", cidade: "Salvador", estado: "BA", whatsapp: "5571987654321", latitude: -12.9777, longitude: -38.5016 },
-    { nome: "Nordeste Shine", cidade: "Recife", estado: "PE", whatsapp: "5581987654321", latitude: -8.0476, longitude: -34.877 },
-    { nome: "Central Detailing DF", cidade: "Brasília", estado: "DF", whatsapp: "5561987654321", latitude: -15.7939, longitude: -47.8828 },
+  // Rede credenciada real (planilha "Dados Revendedores"). Coordenadas obtidas
+  // do CEP via ViaCEP + Nominatim; onde o CEP não resolveu no nível da rua, o
+  // pino cai no centro da cidade.
+  //
+  // ATENÇÃO: quatro WhatsApps vieram da planilha com 8 dígitos (formato antigo,
+  // sem o 9 inicial) — marcados abaixo. Enquanto não forem confirmados, o link
+  // do wa.me não abre conversa. Preferi manter o número como veio a chutar um
+  // dígito e mandar o cliente para a pessoa errada.
+  const revendedores = [
+    { nome: "Arruda Comércio", cidade: "Boa Vista", estado: "RR", whatsapp: "5595991178787", cep: "69304-360", logoUrl: "/revendedores/arruda-comercio.png", latitude: 2.8201816, longitude: -60.6892065 },
+    { nome: "Estudio Car Detalhamento", cidade: "Juiz de Fora", estado: "MG", whatsapp: "5511940835411", cep: "36025-430", logoUrl: null, latitude: -21.7765957, longitude: -43.3615425 },
+    { nome: "Cris Car Care", cidade: "Novo Hamburgo", estado: "RS", whatsapp: "5551991657705", cep: "93344-460", logoUrl: "/revendedores/cris-car-care.png", latitude: -29.6835575, longitude: -51.1467416 },
+    { nome: "Breves Detail", cidade: "Rio de Janeiro", estado: "RJ", whatsapp: "5521980923793", cep: "23942-345", logoUrl: "/revendedores/breves-detail.png", latitude: -22.9110137, longitude: -43.2093727 },
+    { nome: "NR Estética", cidade: "São Paulo", estado: "SP", whatsapp: "5511953270065", cep: "08011-310", logoUrl: null, latitude: -23.4944119, longitude: -46.4444514 },
+    // WhatsApp com 8 dígitos na planilha: (47) 9907-1432
+    { nome: "Confraria do Detailing", cidade: "Blumenau", estado: "SC", whatsapp: "554799071432", cep: "89035-200", logoUrl: "/revendedores/confraria-do-detailing.png", latitude: -26.908409, longitude: -49.082358 },
+    { nome: "Neri Store", cidade: "Sorocaba", estado: "SP", whatsapp: "5511997271303", cep: "18040-000", logoUrl: "/revendedores/neri-store.png", latitude: -23.5003451, longitude: -47.4582864 },
+    // WhatsApp com 8 dígitos na planilha: (48) 9615-9317
+    { nome: "Maju Produtos", cidade: "Biguaçu", estado: "SC", whatsapp: "554896159317", cep: "88161-708", logoUrl: "/revendedores/maju-produtos.png", latitude: -27.508885, longitude: -48.6524613 },
+    // WhatsApp com 8 dígitos na planilha: (54) 9908-2103
+    { nome: "Dandi Produtos", cidade: "Caxias do Sul", estado: "RS", whatsapp: "545499082103", cep: "95041-423", logoUrl: "/revendedores/dandi-produtos.png", latitude: -29.1495217, longitude: -51.1738036 },
+    // WhatsApp com 8 dígitos na planilha: (61) 8502-0239
+    { nome: "Atual Comércio", cidade: "Brasília", estado: "DF", whatsapp: "556185020239", cep: "72035-502", logoUrl: null, latitude: -15.7939869, longitude: -47.8828 },
+    { nome: "MCC", cidade: "Londrina", estado: "PR", whatsapp: "5543991927409", cep: "86046-010", logoUrl: "/revendedores/mcc.png", latitude: -23.3112878, longitude: -51.1595023 },
   ];
 
-  for (const r of revendedoresExemplo) {
+  // Tira da base os revendedores fictícios usados enquanto a lista real não
+  // existia, para não misturar com a rede credenciada de verdade.
+  await prisma.reseller.deleteMany({
+    where: { nome: { notIn: revendedores.map((r) => r.nome) } },
+  });
+
+  for (const r of revendedores) {
     const existente = await prisma.reseller.findFirst({ where: { nome: r.nome } });
     if (existente) {
-      // Garante as coordenadas nos cadastros criados antes do mapa existir.
-      await prisma.reseller.update({
-        where: { id: existente.id },
-        data: { latitude: r.latitude, longitude: r.longitude },
-      });
+      await prisma.reseller.update({ where: { id: existente.id }, data: r });
     } else {
       await prisma.reseller.create({ data: r });
     }

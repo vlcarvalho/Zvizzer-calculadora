@@ -11,6 +11,7 @@ export interface RevendedorNoMapa {
   cidade: string;
   estado: string;
   whatsapp: string;
+  logoUrl: string | null;
   latitude: number | null;
   longitude: number | null;
 }
@@ -91,8 +92,13 @@ export function MapaRevendedores({
       });
 
       const link = montarLinkWhatsapp(revendedor.whatsapp, dadosMensagem);
+      const logo = revendedor.logoUrl
+        ? `<img src="${escaparHtml(revendedor.logoUrl)}" alt="${escaparHtml(revendedor.nome)}" class="logo-revendedor" />`
+        : "";
+
       const popup = `
         <div class="popup-revendedor">
+          ${logo}
           <strong>${escaparHtml(revendedor.nome)}</strong>
           <span>${escaparHtml(revendedor.cidade)} — ${escaparHtml(revendedor.estado)}</span>
           <a href="${link}" target="_blank" rel="noopener noreferrer" data-revendedor="${revendedor.id}">

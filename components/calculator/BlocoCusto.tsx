@@ -14,6 +14,12 @@ interface BlocoCustoProps {
   mensagemTotal: string;
   /** Quanto este custo é menor que o do processo atual (ex.: 0.42 = 42%). */
   reducaoPercentual?: number;
+  /** Ganhos mensais mostrados logo abaixo do percentual de redução. */
+  ganhos?: {
+    economiaMensal: number;
+    horasLiberadasMes: number;
+    faturamentoAdicional: number;
+  };
   destaque?: boolean;
 }
 
@@ -33,6 +39,7 @@ export function BlocoCusto({
   total,
   mensagemTotal,
   reducaoPercentual,
+  ganhos,
   destaque,
 }: BlocoCustoProps) {
   return (
@@ -73,6 +80,33 @@ export function BlocoCusto({
             <span aria-hidden>▼</span>
             {formatarPercentual(reducaoPercentual, 0)} menor que o seu processo atual
           </p>
+        )}
+
+        {ganhos && (
+          <div className="mt-4 flex flex-col gap-2 border-t border-accent/20 pt-4 text-sm leading-snug">
+            {ganhos.economiaMensal > 0 && (
+              <p>
+                o que representa{" "}
+                <strong className="text-lg font-extrabold tabular-nums text-accent">
+                  {formatarMoeda(ganhos.economiaMensal)}
+                </strong>{" "}
+                de economia por mês!
+              </p>
+            )}
+
+            {ganhos.horasLiberadasMes > 0 && (
+              <p>
+                <strong className="text-lg font-extrabold tabular-nums text-accent">
+                  {formatarHoras(ganhos.horasLiberadasMes)}
+                </strong>{" "}
+                de tempo ganho, que representam{" "}
+                <strong className="text-lg font-extrabold tabular-nums text-accent">
+                  + {formatarMoeda(ganhos.faturamentoAdicional)}
+                </strong>{" "}
+                de faturamento adicional
+              </p>
+            )}
+          </div>
         )}
       </footer>
     </section>

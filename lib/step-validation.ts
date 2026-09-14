@@ -28,6 +28,7 @@ export function validarEtapaVolume(volumePreco: VolumePrecoState): ErrosCampo {
     polimentosMes: volumePreco.polimentosMes,
     precoMedioPolimento: volumePreco.precoMedioPolimento,
     horasAtuais: volumePreco.horas,
+    profissionaisSimultaneos: volumePreco.profissionaisSimultaneos,
   });
   return coletarErros(result);
 }

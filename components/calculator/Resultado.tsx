@@ -84,6 +84,11 @@ export function Resultado({
               resultado.custoOperacionalAtual
             : undefined
         }
+        ganhos={{
+          economiaMensal: resultado.economiaMensal,
+          horasLiberadasMes: resultado.horasLiberadasMes,
+          faturamentoAdicional: resultado.capacidadeFaturamento,
+        }}
       />
 
       {/* 4. O racional por trás do número */}

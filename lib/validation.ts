@@ -15,6 +15,9 @@ export const volumePrecoSchema = z.object({
   horasAtuais: z
     .number({ message: "Informe quantas horas você leva para realizar o polimento." })
     .positive({ message: "Informe quantas horas você leva para realizar o polimento." }),
+  profissionaisSimultaneos: z
+    .number({ message: "Selecione quantos profissionais trabalham ao mesmo tempo." })
+    .positive({ message: "Selecione quantos profissionais trabalham ao mesmo tempo." }),
 });
 export type VolumePrecoInput = z.infer<typeof volumePrecoSchema>;
 
