@@ -84,11 +84,9 @@ export const resellerSchema = z.object({
     .trim()
     .optional()
     .transform((v) => (v === "" ? null : (v ?? null))),
-  logoUrl: z
-    .string()
-    .trim()
-    .optional()
-    .transform((v) => (v === "" ? null : (v ?? null))),
+  // logoUrl não entra aqui de propósito: quem controla esse campo é o upload
+  // de imagem. Se ele viesse do formulário, salvar um revendedor sem mexer na
+  // logo apagaria a que já estava lá.
   latitude: z
     .number()
     .min(-90)

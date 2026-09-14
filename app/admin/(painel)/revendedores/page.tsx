@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
+import { UploadLogo } from "@/components/admin/UploadLogo";
 
 interface Reseller {
   id: string;
@@ -23,7 +24,6 @@ const FORM_VAZIO = {
   estado: "",
   whatsapp: "",
   cep: "",
-  logoUrl: "",
   latitude: "" as number | "",
   longitude: "" as number | "",
   ativo: true,
@@ -38,6 +38,9 @@ export default function AdminRevendedoresPage() {
   const [erro, setErro] = useState<string | null>(null);
   const [buscandoCoordenadas, setBuscandoCoordenadas] = useState(false);
   const [avisoCoordenadas, setAvisoCoordenadas] = useState<string | null>(null);
+  // null = não mexer na logo; "" = remover; data URL = nova imagem.
+  const [logoBase64, setLogoBase64] = useState<string | null>(null);
+  const [logoAtual, setLogoAtual] = useState<string | null>(null);
 
   function carregar() {
     setCarregando(true);
@@ -60,6 +63,9 @@ export default function AdminRevendedoresPage() {
   function iniciarNovo() {
     setEditandoId(null);
     setForm(FORM_VAZIO);
+    setLogoBase64(null);
+    setLogoAtual(null);
+    setAvisoCoordenadas(null);
     setErro(null);
     setMostrarForm(true);
   }
@@ -72,11 +78,13 @@ export default function AdminRevendedoresPage() {
       estado: r.estado,
       whatsapp: r.whatsapp,
       cep: r.cep ?? "",
-      logoUrl: r.logoUrl ?? "",
       latitude: r.latitude ?? "",
       longitude: r.longitude ?? "",
       ativo: r.ativo,
     });
+    setLogoBase64(null);
+    setLogoAtual(r.logoUrl);
+    setAvisoCoordenadas(null);
     setErro(null);
     setMostrarForm(true);
   }
@@ -127,6 +135,8 @@ export default function AdminRevendedoresPage() {
       ...form,
       latitude: form.latitude === "" ? null : Number(form.latitude),
       longitude: form.longitude === "" ? null : Number(form.longitude),
+      // Só vai no corpo quando há mudança; ausente = mantém a logo atual.
+      ...(logoBase64 !== null ? { logoBase64 } : {}),
     };
 
     const res = await fetch("/api/admin/resellers", {
@@ -206,17 +216,6 @@ export default function AdminRevendedoresPage() {
                 className="w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-foreground focus:border-accent focus:outline-none"
               />
             </Field>
-            <Field
-              label="Logo da loja"
-              hint="Coloque o arquivo em public/revendedores/ e informe o caminho."
-            >
-              <input
-                value={form.logoUrl}
-                placeholder="/revendedores/nome-da-loja.png"
-                onChange={(e) => setForm({ ...form, logoUrl: e.target.value })}
-                className="w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-foreground focus:border-accent focus:outline-none"
-              />
-            </Field>
             <Field label="Latitude" hint="Posição do pino no mapa.">
               <input
                 type="number"
@@ -260,6 +259,10 @@ export default function AdminRevendedoresPage() {
           {avisoCoordenadas && (
             <p className="mt-2 text-xs text-muted">{avisoCoordenadas}</p>
           )}
+
+          <div className="mt-5">
+            <UploadLogo logoAtual={logoAtual} onChange={setLogoBase64} />
+          </div>
 
           <label className="mt-4 flex items-center gap-2 text-sm">
             <input

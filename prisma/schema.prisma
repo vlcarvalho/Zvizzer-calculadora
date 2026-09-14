@@ -95,8 +95,15 @@ model Reseller {
   estado    String // sigla UF (ex.: SP, RJ)
   whatsapp  String // formato E.164 sem símbolos, ex.: 5511999999999
   cep       String?
-  /// Logo da loja, servida de /public/revendedores/.
+  /// Endereço da logo exibida. Aponta para um arquivo em /public/revendedores/
+  /// ou para /api/revendedores/{id}/logo quando a imagem foi enviada pelo
+  /// painel e está guardada em `logoData`.
   logoUrl   String?
+  /// Imagem enviada pelo admin. Fica no banco de propósito: em hospedagem
+  /// serverless (Vercel) o disco é temporário, então arquivo gravado em
+  /// /public sumiria no próximo deploy.
+  logoData  Bytes?
+  logoTipo  String? // ex.: image/png
   /// Coordenadas para o pino no mapa. Preenchidas no admin (há um botão que
   /// busca automaticamente a partir de cidade + estado).
   latitude  Float?
