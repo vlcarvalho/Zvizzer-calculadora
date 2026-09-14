@@ -79,6 +79,16 @@ export const resellerSchema = z.object({
   whatsapp: z
     .string()
     .min(10, { message: "Informe um WhatsApp válido com DDD." }),
+  cep: z
+    .string()
+    .trim()
+    .optional()
+    .transform((v) => (v === "" ? null : (v ?? null))),
+  logoUrl: z
+    .string()
+    .trim()
+    .optional()
+    .transform((v) => (v === "" ? null : (v ?? null))),
   latitude: z
     .number()
     .min(-90)

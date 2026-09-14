@@ -10,6 +10,8 @@ interface Reseller {
   cidade: string;
   estado: string;
   whatsapp: string;
+  cep: string | null;
+  logoUrl: string | null;
   latitude: number | null;
   longitude: number | null;
   ativo: boolean;
@@ -20,6 +22,8 @@ const FORM_VAZIO = {
   cidade: "",
   estado: "",
   whatsapp: "",
+  cep: "",
+  logoUrl: "",
   latitude: "" as number | "",
   longitude: "" as number | "",
   ativo: true,
@@ -33,6 +37,7 @@ export default function AdminRevendedoresPage() {
   const [mostrarForm, setMostrarForm] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [buscandoCoordenadas, setBuscandoCoordenadas] = useState(false);
+  const [avisoCoordenadas, setAvisoCoordenadas] = useState<string | null>(null);
 
   function carregar() {
     setCarregando(true);
@@ -66,6 +71,8 @@ export default function AdminRevendedoresPage() {
       cidade: r.cidade,
       estado: r.estado,
       whatsapp: r.whatsapp,
+      cep: r.cep ?? "",
+      logoUrl: r.logoUrl ?? "",
       latitude: r.latitude ?? "",
       longitude: r.longitude ?? "",
       ativo: r.ativo,
@@ -75,17 +82,21 @@ export default function AdminRevendedoresPage() {
   }
 
   async function handleBuscarCoordenadas() {
-    if (!form.cidade || !form.estado) {
-      setErro("Preencha cidade e estado antes de buscar as coordenadas.");
+    if (!form.cep && (!form.cidade || !form.estado)) {
+      setErro("Preencha o CEP (ou cidade e estado) antes de buscar as coordenadas.");
       return;
     }
 
     setBuscandoCoordenadas(true);
     setErro(null);
+    setAvisoCoordenadas(null);
 
-    const res = await fetch(
-      `/api/admin/geocode?cidade=${encodeURIComponent(form.cidade)}&estado=${encodeURIComponent(form.estado)}`
-    );
+    const params = new URLSearchParams();
+    if (form.cep) params.set("cep", form.cep);
+    if (form.cidade) params.set("cidade", form.cidade);
+    if (form.estado) params.set("estado", form.estado);
+
+    const res = await fetch(`/api/admin/geocode?${params}`);
     const data = await res.json().catch(() => ({}));
     setBuscandoCoordenadas(false);
 
@@ -94,7 +105,20 @@ export default function AdminRevendedoresPage() {
       return;
     }
 
-    setForm((f) => ({ ...f, latitude: data.latitude, longitude: data.longitude }));
+    setForm((f) => ({
+      ...f,
+      latitude: data.latitude,
+      longitude: data.longitude,
+      // O CEP também confirma cidade/estado quando estiverem vazios.
+      cidade: f.cidade || (data.cidade ?? ""),
+      estado: f.estado || (data.estado ?? ""),
+    }));
+
+    setAvisoCoordenadas(
+      data.precisao === "rua"
+        ? "Coordenadas encontradas no nível da rua."
+        : "O CEP não resolveu o endereço: o pino ficou no centro da cidade."
+    );
   }
 
   async function handleSalvar() {
@@ -174,6 +198,25 @@ export default function AdminRevendedoresPage() {
                 className="w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-foreground focus:border-accent focus:outline-none"
               />
             </Field>
+            <Field label="CEP" hint="Usado para achar as coordenadas.">
+              <input
+                value={form.cep}
+                placeholder="00000-000"
+                onChange={(e) => setForm({ ...form, cep: e.target.value })}
+                className="w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-foreground focus:border-accent focus:outline-none"
+              />
+            </Field>
+            <Field
+              label="Logo da loja"
+              hint="Coloque o arquivo em public/revendedores/ e informe o caminho."
+            >
+              <input
+                value={form.logoUrl}
+                placeholder="/revendedores/nome-da-loja.png"
+                onChange={(e) => setForm({ ...form, logoUrl: e.target.value })}
+                className="w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-foreground focus:border-accent focus:outline-none"
+              />
+            </Field>
             <Field label="Latitude" hint="Posição do pino no mapa.">
               <input
                 type="number"
@@ -211,8 +254,12 @@ export default function AdminRevendedoresPage() {
             onClick={handleBuscarCoordenadas}
             disabled={buscandoCoordenadas}
           >
-            {buscandoCoordenadas ? "Buscando…" : "Buscar coordenadas pela cidade"}
+            {buscandoCoordenadas ? "Buscando…" : "Buscar coordenadas pelo CEP"}
           </Button>
+
+          {avisoCoordenadas && (
+            <p className="mt-2 text-xs text-muted">{avisoCoordenadas}</p>
+          )}
 
           <label className="mt-4 flex items-center gap-2 text-sm">
             <input
