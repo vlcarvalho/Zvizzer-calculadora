@@ -64,6 +64,10 @@ export function MapaRevendedores({
   const marcadoresRef = useRef<google.maps.Marker[]>([]);
   const infoWindowRef = useRef<google.maps.InfoWindow | null>(null);
   const [erro, setErro] = useState<string | null>(null);
+  // Dispara o efeito que desenha os pinos quando o mapa terminar de carregar
+  // (a criação do mapa é assíncrona — sem isso, se os pinos tentassem
+  // desenhar antes disso, nunca mais seriam redesenhados).
+  const [mapaPronto, setMapaPronto] = useState(false);
 
   const comCoordenadas = useMemo(
     () =>
@@ -92,6 +96,7 @@ export function MapaRevendedores({
           fullscreenControl: false,
         });
         infoWindowRef.current = new maps.InfoWindow();
+        setMapaPronto(true);
         // Força o redesenho: às vezes o mapa nasce numa coluna ainda com
         // largura 0 (ex.: layout em transição) e fica com metade cinza.
         setTimeout(() => {
@@ -166,7 +171,7 @@ export function MapaRevendedores({
       mapa.setCenter(CENTRO_BRASIL);
       mapa.setZoom(4);
     }
-  }, [comCoordenadas, dadosMensagem, onWhatsappClick]);
+  }, [comCoordenadas, dadosMensagem, onWhatsappClick, mapaPronto]);
 
   if (erro) {
     return (

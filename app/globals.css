@@ -76,21 +76,41 @@ body {
   background-color: var(--muted) !important;
 }
 
+/* Quando o balão não cabe no espaço acima do pino, o Google força rolagem
+   em .gm-style-iw-d — sem isso, a barra nativa aparece como um bloco
+   branco sólido em cima do conteúdo escuro. */
+.gm-style-iw-d {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.gm-style-iw-d::-webkit-scrollbar {
+  width: 6px;
+}
+
+.gm-style-iw-d::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.gm-style-iw-d::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 999px;
+}
+
 .popup-revendedor {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
 }
 
 .popup-revendedor .logo-revendedor {
-  width: 56px;
-  height: 56px;
-  border-radius: 12px;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
   border: 1px solid var(--border);
   background: rgba(255, 255, 255, 0.05);
   object-fit: contain;
-  padding: 4px;
-  margin-bottom: 4px;
+  padding: 3px;
 }
 
 .popup-revendedor strong {
@@ -103,11 +123,11 @@ body {
 }
 
 .popup-revendedor a {
-  margin-top: 6px;
+  margin-top: 4px;
   border-radius: 10px;
   background: var(--accent);
   color: var(--accent-foreground);
-  padding: 8px 12px;
+  padding: 6px 12px;
   text-align: center;
   font-size: 13px;
   font-weight: 600;
