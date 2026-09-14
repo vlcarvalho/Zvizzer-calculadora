@@ -62,34 +62,35 @@ async function main() {
   // ficam para a equipe preencher no painel admin (o texto abaixo é
   // propositalmente marcado como exemplo, para ninguém confundir com
   // credencial real).
+  // A foto é única do time (public/master-trainers/grupo.jpg); aqui ficam só
+  // os nomes, na ordem em que aparecem embaixo dela.
   const masterTrainers = [
-    { nome: "Pablo Neves", fotoUrl: "/master-trainers/pablo-neves.jpg" },
-    { nome: "Nivaldo Habache", fotoUrl: "/master-trainers/nivaldo-habache.jpg" },
-    { nome: "Priscila Breves", fotoUrl: "/master-trainers/priscila-breves.jpg" },
-    { nome: "Márcio King", fotoUrl: "/master-trainers/marcio-king.jpg" },
-    { nome: "Diego e Marcos", fotoUrl: "/master-trainers/diego-e-marcos.jpg" },
+    "Pablo Neves",
+    "Nivaldo Habache",
+    "Priscila Breves",
+    "Márcio King",
+    "Diego Rafael e Marcos Cogorne",
   ];
 
   const miniCvExemplo =
     "Master Trainer oficial Zvizzer. (Texto de exemplo — substituir pelo mini-CV real no painel admin.)";
 
-  for (const [i, trainer] of masterTrainers.entries()) {
-    const existente = await prisma.masterTrainer.findFirst({ where: { nome: trainer.nome } });
+  for (const [i, nome] of masterTrainers.entries()) {
+    const existente = await prisma.masterTrainer.findFirst({ where: { nome } });
     if (existente) {
-      // Mantém o mini-CV que a equipe já tiver escrito; só garante a foto e a ordem.
-      await prisma.masterTrainer.update({
-        where: { id: existente.id },
-        data: { fotoUrl: trainer.fotoUrl, ordem: i },
-      });
+      // Mantém o mini-CV que a equipe já tiver escrito; só garante a ordem.
+      await prisma.masterTrainer.update({ where: { id: existente.id }, data: { ordem: i } });
     } else {
       await prisma.masterTrainer.create({
-        data: { ...trainer, ordem: i, miniCv: miniCvExemplo },
+        data: { nome, ordem: i, miniCv: miniCvExemplo },
       });
     }
   }
 
-  // "Diego e Marcos" é uma dupla — remove os cadastros individuais criados antes.
-  await prisma.masterTrainer.deleteMany({ where: { nome: { in: ["Diego", "Marcos"] } } });
+  // Cadastros antigos que viraram outra coisa ao longo dos ajustes.
+  await prisma.masterTrainer.deleteMany({
+    where: { nome: { in: ["Diego", "Marcos", "Diego e Marcos"] } },
+  });
 
   console.log(
     "Seed concluído: parâmetros Zvizzer, horas de referência, revendedores e Master Trainers."

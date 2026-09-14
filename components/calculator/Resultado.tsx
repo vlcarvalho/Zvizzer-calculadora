@@ -42,7 +42,13 @@ export function Resultado({
   return (
     // Sem `items-start` de propósito: a coluna lateral precisa esticar até o
     // fim da linha para o `sticky` ter por onde correr.
-    <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_270px] lg:gap-10">
+    <div className="lg:grid lg:grid-cols-[270px_minmax(0,1fr)] lg:gap-10">
+      {/* Coluna fixa do desktop, à esquerda: acompanha a rolagem do resultado.
+          No celular ela some e a foto aparece junto do formulário. */}
+      <aside className="hidden lg:block">
+        <MasterTrainers variante="coluna" />
+      </aside>
+
       <div className="flex flex-col gap-8">
       {/* 1. Custo operacional atual */}
       <BlocoCusto
@@ -163,11 +169,6 @@ export function Resultado({
         />
         </footer>
       </div>
-
-      {/* Coluna fixa do desktop: acompanha a rolagem de todo o resultado. */}
-      <aside className="hidden lg:block">
-        <MasterTrainers variante="coluna" />
-      </aside>
     </div>
   );
 }
