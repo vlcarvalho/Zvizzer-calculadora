@@ -42,10 +42,10 @@ async function main() {
   // dígito e mandar o cliente para a pessoa errada.
   const revendedores = [
     { nome: "Arruda Comércio", cidade: "Boa Vista", estado: "RR", whatsapp: "5595991178787", cep: "69304-360", logoUrl: "/revendedores/arruda-comercio.png", latitude: 2.8201816, longitude: -60.6892065 },
-    { nome: "Estudio Car Detalhamento", cidade: "Juiz de Fora", estado: "MG", whatsapp: "5511940835411", cep: "36025-430", logoUrl: null, latitude: -21.7765957, longitude: -43.3615425 },
+    { nome: "Estudio Car Detalhamento", cidade: "Juiz de Fora", estado: "MG", whatsapp: "5511940835411", cep: "36025-430", logoUrl: "/revendedores/estudio-car.png", latitude: -21.7765957, longitude: -43.3615425 },
     { nome: "Cris Car Care", cidade: "Novo Hamburgo", estado: "RS", whatsapp: "5551991657705", cep: "93344-460", logoUrl: "/revendedores/cris-car-care.png", latitude: -29.6835575, longitude: -51.1467416 },
     { nome: "Breves Detail", cidade: "Rio de Janeiro", estado: "RJ", whatsapp: "5521980923793", cep: "23942-345", logoUrl: "/revendedores/breves-detail.png", latitude: -22.9110137, longitude: -43.2093727 },
-    { nome: "NR Estética", cidade: "São Paulo", estado: "SP", whatsapp: "5511953270065", cep: "08011-310", logoUrl: null, latitude: -23.4944119, longitude: -46.4444514 },
+    { nome: "NR Estética", cidade: "São Paulo", estado: "SP", whatsapp: "5511953270065", cep: "08011-310", logoUrl: "/revendedores/nr-estetica.png", latitude: -23.4944119, longitude: -46.4444514 },
     // WhatsApp com 8 dígitos na planilha: (47) 9907-1432
     { nome: "Confraria do Detailing", cidade: "Blumenau", estado: "SC", whatsapp: "554799071432", cep: "89035-200", logoUrl: "/revendedores/confraria-do-detailing.png", latitude: -26.908409, longitude: -49.082358 },
     { nome: "Neri Store", cidade: "Sorocaba", estado: "SP", whatsapp: "5511997271303", cep: "18040-000", logoUrl: "/revendedores/neri-store.png", latitude: -23.5003451, longitude: -47.4582864 },
@@ -54,7 +54,7 @@ async function main() {
     // WhatsApp com 8 dígitos na planilha: (54) 9908-2103
     { nome: "Dandi Produtos", cidade: "Caxias do Sul", estado: "RS", whatsapp: "545499082103", cep: "95041-423", logoUrl: "/revendedores/dandi-produtos.png", latitude: -29.1495217, longitude: -51.1738036 },
     // WhatsApp com 8 dígitos na planilha: (61) 8502-0239
-    { nome: "Atual Comércio", cidade: "Brasília", estado: "DF", whatsapp: "556185020239", cep: "72035-502", logoUrl: null, latitude: -15.7939869, longitude: -47.8828 },
+    { nome: "Atual Comércio", cidade: "Brasília", estado: "DF", whatsapp: "556185020239", cep: "72035-502", logoUrl: "/revendedores/atual-comercio.png", latitude: -15.7939869, longitude: -47.8828 },
     { nome: "MCC", cidade: "Londrina", estado: "PR", whatsapp: "5543991927409", cep: "86046-010", logoUrl: "/revendedores/mcc.png", latitude: -23.3112878, longitude: -51.1595023 },
   ];
 
