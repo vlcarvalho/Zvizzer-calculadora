@@ -13,16 +13,10 @@ interface ZvizzerSettings {
   boinaPreco: number;
   boinaQuantidade: number;
   boinaDurabilidadeCarros: number;
-  tempoProcessoMinutos: number;
-}
-
-interface LaborSettings {
-  horasBaseMensais: number;
 }
 
 export default function AdminParametrosPage() {
   const [zvizzer, setZvizzer] = useState<ZvizzerSettings | null>(null);
-  const [labor, setLabor] = useState<LaborSettings | null>(null);
   const [carregando, setCarregando] = useState(true);
   const [salvando, setSalvando] = useState(false);
   const [mensagem, setMensagem] = useState<string | null>(null);
@@ -32,20 +26,19 @@ export default function AdminParametrosPage() {
       .then((r) => r.json())
       .then((data) => {
         setZvizzer(data.zvizzer);
-        setLabor(data.labor);
       })
       .finally(() => setCarregando(false));
   }, []);
 
   async function handleSalvar() {
-    if (!zvizzer || !labor) return;
+    if (!zvizzer) return;
     setSalvando(true);
     setMensagem(null);
 
     const res = await fetch("/api/admin/settings", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ zvizzer, labor }),
+      body: JSON.stringify({ zvizzer }),
     });
 
     setSalvando(false);
@@ -53,15 +46,15 @@ export default function AdminParametrosPage() {
   }
 
   if (carregando) return <p className="text-muted">Carregando…</p>;
-  if (!zvizzer || !labor) return <p className="text-danger">Não foi possível carregar.</p>;
+  if (!zvizzer) return <p className="text-danger">Não foi possível carregar.</p>;
 
   return (
     <div className="flex flex-col gap-10 pb-16">
       <div>
         <h1 className="text-2xl font-bold">Parâmetros</h1>
         <p className="mt-1 text-sm text-muted">
-          Estes valores alimentam o cenário &quot;Processo Zvizzer&quot; e o custo de
-          colaboradores em toda a calculadora. Revise com cuidado antes de salvar.
+          Estes valores alimentam o cenário &quot;Processo Zvizzer&quot; em toda a calculadora.
+          Revise com cuidado antes de salvar.
         </p>
       </div>
 
@@ -69,7 +62,8 @@ export default function AdminParametrosPage() {
         <h2 className="text-lg font-bold">Processo Zvizzer</h2>
         <p className="text-xs text-muted">
           Os nomes dos produtos aparecem na tabela comparativa mostrada ao usuário no resultado
-          da calculadora.
+          da calculadora. O tempo do processo Zvizzer não é configurado aqui: é sempre calculado
+          como 60% do tempo atual informado pelo próprio usuário na calculadora (40% mais rápido).
         </p>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <TextoField
@@ -111,26 +105,6 @@ export default function AdminParametrosPage() {
             label="Durabilidade (carros)"
             value={zvizzer.boinaDurabilidadeCarros}
             onChange={(v) => setZvizzer({ ...zvizzer, boinaDurabilidadeCarros: v })}
-          />
-          <NumeroField
-            label="Tempo médio do processo (min)"
-            value={zvizzer.tempoProcessoMinutos}
-            onChange={(v) => setZvizzer({ ...zvizzer, tempoProcessoMinutos: v })}
-          />
-        </div>
-      </section>
-
-      <section className="flex flex-col gap-4">
-        <h2 className="text-lg font-bold">Custo-hora da operação</h2>
-        <p className="text-xs text-muted">
-          O usuário informa os custos fixos mensais (pró-labore, aluguel, funcionários e demais
-          despesas) e o custo-hora sai da soma dividida por esta referência de horas/mês.
-        </p>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <NumeroField
-            label="Horas/mês de referência"
-            value={labor.horasBaseMensais}
-            onChange={(v) => setLabor({ ...labor, horasBaseMensais: v })}
           />
         </div>
       </section>

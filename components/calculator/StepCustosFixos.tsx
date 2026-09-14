@@ -1,21 +1,20 @@
 "use client";
 
 import { useCalculatorStore } from "@/lib/store/calculator-store";
-import { custoFixoMensalTotal, custoHoraOperacao } from "@/lib/calculations";
+import { custoFixoMensalTotal, custoHoraOperacao, HORAS_BASE_MENSAIS } from "@/lib/calculations";
 import { formatarMoeda, formatarNumero } from "@/lib/format";
 import { Field } from "@/components/ui/Field";
 import { CurrencyInput } from "@/components/ui/CurrencyInput";
 
 interface StepCustosFixosProps {
   erros: Record<string, string>;
-  horasBaseMensais: number;
 }
 
-export function StepCustosFixos({ erros, horasBaseMensais }: StepCustosFixosProps) {
+export function StepCustosFixos({ erros }: StepCustosFixosProps) {
   const { custosFixos, setCustosFixos } = useCalculatorStore();
 
   const total = custoFixoMensalTotal(custosFixos);
-  const custoHora = custoHoraOperacao(custosFixos, { horasBaseMensais });
+  const custoHora = custoHoraOperacao(custosFixos);
 
   return (
     <div className="flex flex-col gap-6">
@@ -72,7 +71,7 @@ export function StepCustosFixos({ erros, horasBaseMensais }: StepCustosFixosProp
             <span className="text-sm text-muted">
               Custo por hora trabalhada
               <span className="ml-1 text-xs">
-                (÷ {formatarNumero(horasBaseMensais)}h/mês)
+                (÷ {formatarNumero(HORAS_BASE_MENSAIS)}h/mês)
               </span>
             </span>
             <span className="text-lg font-bold tabular-nums text-accent">

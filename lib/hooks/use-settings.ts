@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { LaborParams, ZvizzerParams } from "@/lib/calculations";
+import type { ZvizzerParams } from "@/lib/calculations";
 
 /** Parâmetros Zvizzer numéricos (usados no cálculo) + nomes dos produtos
  * (só para exibição, na tabela comparativa do resultado). */
@@ -12,7 +12,6 @@ export type ZvizzerDisplaySettings = ZvizzerParams & {
 
 interface SettingsResponse {
   zvizzer: ZvizzerDisplaySettings;
-  labor: LaborParams;
 }
 
 interface UseSettingsResult {
@@ -21,8 +20,9 @@ interface UseSettingsResult {
   erro: string | null;
 }
 
-/** Busca uma única vez os parâmetros públicos (Zvizzer + mão de obra) usados
- * pelo motor de cálculo no client (spec §18: cálculo no cliente). */
+/** Busca uma única vez os parâmetros públicos do processo Zvizzer usados
+ * pelo motor de cálculo no client (spec §18: cálculo no cliente). A
+ * referência de horas/mês é uma constante fixa do motor, não vem daqui. */
 export function useSettings(): UseSettingsResult {
   const [settings, setSettings] = useState<SettingsResponse | null>(null);
   const [carregando, setCarregando] = useState(true);

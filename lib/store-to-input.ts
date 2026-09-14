@@ -15,9 +15,10 @@ export function converterParaCalculatorInput(store: {
   return {
     polimentosMes: store.volumePreco.polimentosMes,
     precoMedioPolimento: store.volumePreco.precoMedioPolimento,
+    // Duração real do processo daquela equipe — nunca dividida pela
+    // quantidade de profissionais informada na Etapa 1 (armazenada à parte,
+    // sem entrar em nenhuma fórmula de tempo: ver lib/calculations.ts).
     horasAtuais: store.volumePreco.horas,
-    // Mais gente polindo junto = tempo de parede menor no processo Zvizzer.
-    numeroPessoasPolimento: store.volumePreco.profissionaisSimultaneos,
     custosFixos: store.custosFixos,
     compostos: store.compostos,
     boinas: store.boinas,

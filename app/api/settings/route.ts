@@ -2,17 +2,15 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 
 /**
- * Leitura pública (sem auth) dos parâmetros vigentes do processo Zvizzer e
- * de mão de obra — usados pelo client para rodar o cálculo. Não expõe
- * nenhum dado administrativo além dos próprios parâmetros.
+ * Leitura pública (sem auth) dos parâmetros vigentes do processo Zvizzer —
+ * usados pelo client para rodar o cálculo. Não expõe nenhum dado
+ * administrativo além dos próprios parâmetros. A referência de horas/mês
+ * (220h) é uma constante fixa do motor de cálculo, não vem do banco.
  */
 export async function GET() {
-  const [zvizzer, labor] = await Promise.all([
-    prisma.zvizzerSettings.findUnique({ where: { id: "default" } }),
-    prisma.laborSettings.findUnique({ where: { id: "default" } }),
-  ]);
+  const zvizzer = await prisma.zvizzerSettings.findUnique({ where: { id: "default" } });
 
-  if (!zvizzer || !labor) {
+  if (!zvizzer) {
     return NextResponse.json(
       { error: "Parâmetros ainda não configurados. Rode o seed inicial." },
       { status: 503 }
@@ -29,10 +27,6 @@ export async function GET() {
       boinaPreco: zvizzer.boinaPreco,
       boinaQuantidade: zvizzer.boinaQuantidade,
       boinaDurabilidadeCarros: zvizzer.boinaDurabilidadeCarros,
-      tempoProcessoMinutos: zvizzer.tempoProcessoMinutos,
-    },
-    labor: {
-      horasBaseMensais: labor.horasBaseMensais,
     },
   });
 }

@@ -6,10 +6,31 @@
  * caso o caminho de empacotamento mude de Capacitor para app nativo separado.
  *
  * Todas as fórmulas seguem literalmente o documento
- * "Calculadora de Eficiência de Polimento.docx" (seções 4 a 14). Onde o
- * documento deixava uma ambiguidade (modo equipe reaplicado no cenário
- * Zvizzer), a decisão tomada está documentada no comentário da função.
+ * "Calculadora de Eficiência de Polimento.docx" (seções 4 a 14), com o ajuste
+ * de regra de negócio confirmado pelo cliente em 2026-09-14: o tempo-base de
+ * horas/mês é uma constante fixa (não mais configurável no admin) e o tempo
+ * Zvizzer é sempre 60% do tempo atual informado pelo cliente — nunca dividido
+ * pela quantidade de profissionais (ver constantes abaixo).
  */
+
+// ---------------------------------------------------------------------------
+// Constantes de negócio
+// ---------------------------------------------------------------------------
+
+/**
+ * Horas/mês usadas para transformar o custo fixo mensal informado pelo
+ * usuário em custo-hora da operação. Fixo em 220h (referência padrão de
+ * mercado) — deixou de ser configurável pelo admin por decisão do cliente.
+ */
+export const HORAS_BASE_MENSAIS = 220;
+
+/**
+ * O processo com Zvizzer é sempre 40% mais rápido que o processo atual
+ * informado pelo cliente — ou seja, leva 60% do tempo atual.
+ * tempo_zvizzer = tempo_atual × 0.60 (NUNCA tempo_atual × 0.40: 40% MENOS
+ * tempo significa usar 60% do tempo original).
+ */
+export const FATOR_TEMPO_ZVIZZER = 0.6;
 
 // ---------------------------------------------------------------------------
 // Tipos de entrada
@@ -18,18 +39,13 @@
 /**
  * Custos fixos mensais da operação. O usuário informa esses quatro valores
  * (em vez de escolher um "cenário" de mão de obra) e o custo-hora sai da
- * soma deles dividida pela referência de horas/mês do admin.
+ * soma deles dividida pela referência fixa de horas/mês (`HORAS_BASE_MENSAIS`).
  */
 export interface CustosFixosInput {
   salarioProLabore: number; // R$/mês
   aluguel: number; // R$/mês
   custoFuncionarios: number; // R$/mês, já com encargos
   demaisDespesas: number; // R$/mês (energia, água, internet, contabilidade...)
-}
-
-export interface LaborParams {
-  /** Horas/mês usadas para transformar custo fixo mensal em custo-hora. */
-  horasBaseMensais: number;
 }
 
 export interface CompostoInput {
@@ -54,21 +70,17 @@ export interface ZvizzerParams {
   boinaPreco: number;
   boinaQuantidade: number;
   boinaDurabilidadeCarros: number;
-  tempoProcessoMinutos: number;
 }
 
 export interface CalculatorInput {
   polimentosMes: number;
   precoMedioPolimento: number;
+  /** Duração real do processo daquela equipe — nunca dividida pela
+   * quantidade de profissionais (esse número já é o tempo de parede). */
   horasAtuais: number; // horas decimais (ex.: 5.5 = 5h30)
   custosFixos: CustosFixosInput;
   compostos: CompostoInput[];
   boinas: BoinaInput[];
-  /** Número de pessoas trabalhando juntas na etapa de polimento — divide
-   * proporcionalmente o tempo do processo Zvizzer. Hoje a calculadora não
-   * pergunta isso (o custo é informado como custo fixo da operação, sem
-   * decompor por pessoa), então o padrão é 1. */
-  numeroPessoasPolimento?: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -87,19 +99,15 @@ export function custoFixoMensalTotal(custos: CustosFixosInput): number {
 
 /**
  * Custo-hora da operação: custo fixo mensal total dividido pela referência
- * de horas/mês configurada no admin (padrão de mercado: 220h).
+ * fixa de 220h/mês (`HORAS_BASE_MENSAIS`, padrão de mercado, não configurável).
  *
  * Este mesmo custo-hora é reaproveitado no cenário Zvizzer (spec §9: "não
  * utilizar um custo-hora Zvizzer fixo... usar exatamente o mesmo custo-hora
  * calculado para aquele usuário"), de modo que a comparação varie só no
  * tempo do processo e nos insumos.
  */
-export function custoHoraOperacao(
-  custos: CustosFixosInput,
-  labor: LaborParams
-): number {
-  if (labor.horasBaseMensais <= 0) return 0;
-  return custoFixoMensalTotal(custos) / labor.horasBaseMensais;
+export function custoHoraOperacao(custos: CustosFixosInput): number {
+  return custoFixoMensalTotal(custos) / HORAS_BASE_MENSAIS;
 }
 
 // ---------------------------------------------------------------------------
@@ -159,7 +167,6 @@ export interface CalculatorResult {
   custoHoraEfetivo: number;
   valorVendaHora: number;
 
-  numeroPessoas: number;
   horasAtuais: number;
   horasZvizzer: number;
 
@@ -185,22 +192,16 @@ export interface CalculatorResult {
   impactoEconomicoPotencial: number;
 }
 
-export function calcular(
-  input: CalculatorInput,
-  zvizzer: ZvizzerParams,
-  labor: LaborParams
-): CalculatorResult {
-  const custoHora = custoHoraOperacao(input.custosFixos, labor);
+export function calcular(input: CalculatorInput, zvizzer: ZvizzerParams): CalculatorResult {
+  const custoHora = custoHoraOperacao(input.custosFixos);
   const vendaHora = valorVendaHora(input.precoMedioPolimento, input.horasAtuais);
 
-  // Quantas pessoas polem o carro juntas. O tempo do processo Zvizzer
-  // configurado no admin (`tempoProcessoMinutos`) é a referência para 1
-  // pessoa; com mais gente trabalhando ao mesmo tempo no mesmo carro, o
-  // tempo de parede cai proporcionalmente. A calculadora não pergunta isso
-  // hoje (o custo entra como custo fixo da operação), então fica em 1 —
-  // basta voltar a passar `numeroPessoasPolimento` para reativar.
-  const numeroPessoas = Math.max(1, input.numeroPessoasPolimento ?? 1);
-  const horasZvizzer = zvizzer.tempoProcessoMinutos / 60 / numeroPessoas;
+  // O processo Zvizzer é sempre 40% mais rápido que o tempo atual informado
+  // pelo cliente — ou seja, 60% do tempo atual. A quantidade de profissionais
+  // é a mesma nos dois cenários e NUNCA divide o tempo (nem o atual, nem o
+  // Zvizzer): o ganho vem da redução do tempo de processo, não de uma
+  // redução fictícia de gente trabalhando.
+  const horasZvizzer = input.horasAtuais * FATOR_TEMPO_ZVIZZER;
 
   // --- Cenário atual ---
   const custoCompostosAtual = custoCompostosTotal(input.compostos);
@@ -241,7 +242,6 @@ export function calcular(
     custoFixoMensal: custoFixoMensalTotal(input.custosFixos),
     custoHoraEfetivo: custoHora,
     valorVendaHora: vendaHora,
-    numeroPessoas,
     horasAtuais: input.horasAtuais,
     horasZvizzer,
     custoCompostosAtual,

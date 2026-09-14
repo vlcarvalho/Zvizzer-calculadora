@@ -17,20 +17,12 @@ async function main() {
       boinaPreco: 150,
       boinaQuantidade: 1,
       boinaDurabilidadeCarros: 10,
-      tempoProcessoMinutos: 180,
     },
   });
 
-  // Referência de horas/mês usada para converter o custo fixo mensal da
-  // operação em custo-hora (configurável no admin, nunca hardcoded).
-  await prisma.laborSettings.upsert({
-    where: { id: "default" },
-    update: {},
-    create: {
-      id: "default",
-      horasBaseMensais: 220, // referência de mercado
-    },
-  });
+  // Referência de horas/mês (220h) e o fator de tempo Zvizzer (60% do tempo
+  // atual) são constantes fixas do motor de cálculo (lib/calculations.ts),
+  // não configuráveis no admin — não há seed para elas.
 
   // Rede credenciada real (planilha "Dados Revendedores"). Coordenadas obtidas
   // do CEP via ViaCEP + Nominatim; onde o CEP não resolveu no nível da rua, o

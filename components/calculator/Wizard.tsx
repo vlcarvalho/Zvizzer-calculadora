@@ -37,7 +37,7 @@ export function Wizard() {
   const resultado = useMemo(() => {
     if (!settings) return null;
     const input = converterParaCalculatorInput(store);
-    return calcular(input, settings.zvizzer, settings.labor);
+    return calcular(input, settings.zvizzer);
   }, [settings, store]);
 
   function validarEtapaAtual(): boolean {
@@ -131,9 +131,7 @@ export function Wizard() {
       <ProgressBar etapaAtual={store.etapa} totalEtapas={TOTAL_ETAPAS} />
 
       {store.etapa === 1 && <StepVolume erros={erros} />}
-      {store.etapa === 2 && (
-        <StepCustosFixos erros={erros} horasBaseMensais={settings.labor.horasBaseMensais} />
-      )}
+      {store.etapa === 2 && <StepCustosFixos erros={erros} />}
       {store.etapa === 3 && <StepCompostos erros={errosItens} />}
       {store.etapa === 4 && <StepBoinas erros={errosItens} />}
 

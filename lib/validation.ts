@@ -114,11 +114,6 @@ export const zvizzerSettingsSchema = z.object({
   boinaPreco: z.number().positive(),
   boinaQuantidade: z.number().positive(),
   boinaDurabilidadeCarros: z.number().positive(),
-  tempoProcessoMinutos: z.number().positive(),
-});
-
-export const laborSettingsSchema = z.object({
-  horasBaseMensais: z.number().positive(),
 });
 
 export const masterTrainerSchema = z.object({

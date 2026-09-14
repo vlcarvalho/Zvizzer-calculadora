@@ -6,14 +6,13 @@ import {
   custoFixoMensalTotal,
   custoHoraOperacao,
   valorVendaHora,
+  FATOR_TEMPO_ZVIZZER,
+  HORAS_BASE_MENSAIS,
   type BoinaInput,
   type CompostoInput,
   type CustosFixosInput,
-  type LaborParams,
   type ZvizzerParams,
 } from "./calculations";
-
-const labor: LaborParams = { horasBaseMensais: 220 };
 
 const zvizzer: ZvizzerParams = {
   compostoPreco: 700,
@@ -22,7 +21,6 @@ const zvizzer: ZvizzerParams = {
   boinaPreco: 150,
   boinaQuantidade: 1,
   boinaDurabilidadeCarros: 10,
-  tempoProcessoMinutos: 180,
 };
 
 const custosFixos: CustosFixosInput = {
@@ -47,17 +45,10 @@ describe("custo-hora da operação", () => {
     expect(custoFixoMensalTotal(custosFixos)).toBe(20000);
   });
 
-  it("divide o custo fixo pela referência de horas/mês do admin", () => {
+  it("divide o custo fixo pela constante fixa de 220h/mês", () => {
     // Exemplo do cliente: R$20.000 / 220h ≈ R$90,91/h
-    expect(custoHoraOperacao(custosFixos, labor)).toBeCloseTo(20000 / 220, 5);
-  });
-
-  it("acompanha a referência de horas configurada (200h em vez de 220h)", () => {
-    expect(custoHoraOperacao(custosFixos, { horasBaseMensais: 200 })).toBeCloseTo(100, 5);
-  });
-
-  it("retorna 0 em vez de dividir por zero se a referência de horas for 0", () => {
-    expect(custoHoraOperacao(custosFixos, { horasBaseMensais: 0 })).toBe(0);
+    expect(HORAS_BASE_MENSAIS).toBe(220);
+    expect(custoHoraOperacao(custosFixos)).toBeCloseTo(20000 / 220, 5);
   });
 });
 
@@ -92,8 +83,7 @@ describe("calcular() — cenário completo", () => {
         compostos: [{ precoEmbalagem: 300, quantidadeEmbalagemG: 500, consumoCarroG: 60 }],
         boinas: [{ quantidade: 2, precoUnitario: 80, durabilidadeCarros: 8 }],
       },
-      zvizzer,
-      labor
+      zvizzer
     );
 
     const custoHora = 20000 / 220;
@@ -108,7 +98,9 @@ describe("calcular() — cenário completo", () => {
     expect(resultado.custoMaoDeObraAtual).toBeCloseTo(custoHora * 5, 5);
     expect(resultado.custoOperacionalAtual).toBeCloseTo(36 + 20 + custoHora * 5, 5);
 
-    // Zvizzer usa o MESMO custo-hora, variando só o tempo (180min = 3h)
+    // Zvizzer usa o MESMO custo-hora, e o tempo é 60% do tempo atual
+    // (5h × 0.60 = 3h) — nunca dividido por quantidade de profissionais.
+    expect(resultado.horasZvizzer).toBeCloseTo(5 * FATOR_TEMPO_ZVIZZER, 5);
     expect(resultado.horasZvizzer).toBeCloseTo(3, 5);
     expect(resultado.custoMaoDeObraZvizzer).toBeCloseTo(custoHora * 3, 5);
 
@@ -121,23 +113,23 @@ describe("calcular() — cenário completo", () => {
     );
   });
 
-  it("quando o processo atual já é mais rápido que o Zvizzer, horas liberadas = 0", () => {
+  it("quando o tempo atual já é curto, horas liberadas seguem proporcionais (60% do atual)", () => {
     const resultado = calcular(
       {
         polimentosMes: 20,
         precoMedioPolimento: 500,
-        horasAtuais: 2, // mais rápido que as 3h do Zvizzer
+        horasAtuais: 2,
         custosFixos,
         compostos: [],
         boinas: [],
       },
-      zvizzer,
-      labor
+      zvizzer
     );
 
-    expect(resultado.horasLiberadasPorCarro).toBe(0);
-    expect(resultado.horasLiberadasMes).toBe(0);
-    expect(resultado.capacidadeFaturamento).toBe(0);
+    // 2h × 0.60 = 1.2h Zvizzer — sempre mais rápido que o atual, nunca mais.
+    expect(resultado.horasZvizzer).toBeCloseTo(1.2, 5);
+    expect(resultado.horasLiberadasPorCarro).toBeCloseTo(0.8, 5);
+    expect(resultado.horasLiberadasMes).toBeCloseTo(16, 5);
   });
 
   it("economia pode ser negativa e não deve ser escondida/zerada", () => {
@@ -155,48 +147,30 @@ describe("calcular() — cenário completo", () => {
         compostos: [{ precoEmbalagem: 10, quantidadeEmbalagemG: 1000, consumoCarroG: 5 }],
         boinas: [],
       },
-      { ...zvizzer, compostoPreco: 5000, tempoProcessoMinutos: 300 },
-      labor
+      { ...zvizzer, compostoPreco: 5000 }
     );
 
     expect(resultado.economiaPorCarro).toBeLessThan(0);
     expect(resultado.economiaMensal).toBeLessThan(0);
   });
 
-  it("numeroPessoasPolimento, quando informado, divide o tempo Zvizzer", () => {
+  it("a quantidade de profissionais nunca entra na fórmula: tempo Zvizzer é sempre 60% do atual", () => {
+    // Exemplo literal do cliente: equipe de 2 profissionais leva 5 horas
+    // corridas. Zvizzer: 5 × 0.60 = 3 horas, com os MESMOS 2 profissionais —
+    // nunca 5 / 2 = 2,5h (atual) nem 3 / 2 = 1,5h (Zvizzer).
     const resultado = calcular(
       {
         polimentosMes: 30,
         precoMedioPolimento: 1000,
-        horasAtuais: 4,
-        custosFixos,
-        numeroPessoasPolimento: 3,
-        compostos: [],
-        boinas: [],
-      },
-      zvizzer,
-      labor
-    );
-
-    expect(resultado.numeroPessoas).toBe(3);
-    expect(resultado.horasZvizzer).toBeCloseTo(1, 5); // 3h / 3 pessoas
-  });
-
-  it("sem numeroPessoasPolimento, o tempo Zvizzer é o configurado no admin", () => {
-    const resultado = calcular(
-      {
-        polimentosMes: 30,
-        precoMedioPolimento: 1000,
-        horasAtuais: 4,
+        horasAtuais: 5,
         custosFixos,
         compostos: [],
         boinas: [],
       },
-      zvizzer,
-      labor
+      zvizzer
     );
 
-    expect(resultado.numeroPessoas).toBe(1);
+    expect(resultado.horasAtuais).toBe(5);
     expect(resultado.horasZvizzer).toBeCloseTo(3, 5);
   });
 });
