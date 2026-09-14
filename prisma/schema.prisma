@@ -1,11 +1,12 @@
-// Zvizzer — Calculadora de Eficiência de Polimento
-// Dev local: SQLite (sem dependência externa). Produção: trocar o datasource
-// para "postgresql" e apontar DATABASE_URL para o projeto Supabase — o schema
-// abaixo foi desenhado para migrar sem alterações estruturais (sem tipos
-// específicos de SQLite; valores monetários em Float, compatível com ambos).
+// Calculadora de Custo de Polimento
+// Postgres (Supabase). DATABASE_URL é a conexão via pooler (pgbouncer,
+// porta 6543) — usada em runtime, inclusive pela Vercel (serverless não se
+// dá bem com conexões diretas em excesso). DIRECT_URL é a conexão direta
+// (porta 5432), usada só pelo Prisma Migrate para criar/alterar tabelas.
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 generator client {
