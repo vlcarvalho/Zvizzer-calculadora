@@ -3,20 +3,22 @@
  *
  * A versão é gravada junto de cada consentimento: se o texto mudar, dá para
  * saber exatamente o que cada pessoa aceitou (LGPD art. 8º, §1º — cabe ao
- * controlador comprovar o consentimento).
+ * controlador comprovar o consentimento). Ao alterar o texto abaixo, suba
+ * também a POLITICA_VERSAO.
  *
- * IMPORTANTE: a revisão jurídica ainda é necessária. Os campos marcados como
- * PENDENTE precisam dos dados reais da empresa antes da publicação.
+ * Os dados da empresa são os oficiais informados pela Foamtec. O texto da
+ * política ainda merece uma leitura jurídica antes da divulgação ampla.
  */
 
 export const POLITICA_VERSAO = "2026-09-14";
 
 export const CONTROLADOR = {
   nome: "Foamtec / Zvizzer Brasil",
-  razaoSocial: "PENDENTE: razão social completa",
-  cnpj: "PENDENTE: CNPJ",
-  emailContato: "PENDENTE: e-mail de contato para privacidade",
-  encarregado: "PENDENTE: nome do encarregado (DPO) e e-mail",
+  razaoSocial: "R.B.F. Peças e Acessórios Ltda",
+  cnpj: "55.946.832/0001-97",
+  emailContato: "contato@foamtec.com.br",
+  encarregado: "Vinicius Leme de Carvalho",
+  emailEncarregado: "contato@foamtec.com.br",
 };
 
 /** Texto exato do aceite, gravado junto do contato como prova. */

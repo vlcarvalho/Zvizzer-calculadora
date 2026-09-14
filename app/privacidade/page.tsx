@@ -21,9 +21,20 @@ export default function PrivacidadePage() {
 
       <Secao titulo="1. Quem é o responsável pelos dados">
         <p>
-          O controlador dos dados é <strong>{CONTROLADOR.nome}</strong> ({CONTROLADOR.razaoSocial},
-          CNPJ {CONTROLADOR.cnpj}). Para qualquer assunto sobre privacidade, fale com{" "}
-          {CONTROLADOR.emailContato}. Encarregado (DPO): {CONTROLADOR.encarregado}.
+          O controlador dos dados é <strong>{CONTROLADOR.razaoSocial}</strong>, CNPJ{" "}
+          {CONTROLADOR.cnpj}, responsável pelas marcas {CONTROLADOR.nome}.
+        </p>
+        <p>
+          Encarregado pelo tratamento de dados (DPO):{" "}
+          <strong>{CONTROLADOR.encarregado}</strong>. Para qualquer assunto sobre privacidade —
+          inclusive para exercer os direitos listados no item 7 — escreva para{" "}
+          <a
+            href={`mailto:${CONTROLADOR.emailEncarregado}`}
+            className="text-accent underline underline-offset-2"
+          >
+            {CONTROLADOR.emailEncarregado}
+          </a>
+          .
         </p>
       </Secao>
 
@@ -92,7 +103,13 @@ export default function PrivacidadePage() {
           A LGPD (art. 18) garante que você possa pedir: confirmação de que tratamos seus dados,
           acesso a eles, correção, anonimização ou exclusão, portabilidade, informação sobre
           compartilhamento e <strong>revogação do consentimento</strong>. É só escrever para{" "}
-          {CONTROLADOR.emailContato} — atendemos sem custo.
+          <a
+            href={`mailto:${CONTROLADOR.emailContato}`}
+            className="text-accent underline underline-offset-2"
+          >
+            {CONTROLADOR.emailContato}
+          </a>{" "}
+          — atendemos sem custo.
         </p>
       </Secao>
 
