@@ -69,7 +69,8 @@ async function main() {
     "Nivaldo Habache",
     "Priscila Breves",
     "Márcio King",
-    "Diego Rafael e Marcos Cogorne",
+    "Diego Rafael",
+    "Marcos Cogorne",
   ];
 
   const miniCvExemplo =
@@ -89,7 +90,9 @@ async function main() {
 
   // Cadastros antigos que viraram outra coisa ao longo dos ajustes.
   await prisma.masterTrainer.deleteMany({
-    where: { nome: { in: ["Diego", "Marcos", "Diego e Marcos"] } },
+    where: {
+      nome: { in: ["Diego", "Marcos", "Diego e Marcos", "Diego Rafael e Marcos Cogorne"] },
+    },
   });
 
   console.log(
