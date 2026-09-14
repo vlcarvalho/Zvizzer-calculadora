@@ -125,7 +125,9 @@ export function Wizard() {
   }
 
   return (
-    <div className="flex flex-col gap-8">
+    // As etapas seguem estreitas mesmo no desktop: formulário largo demais
+    // fica desconfortável de preencher.
+    <div className="flex w-full max-w-xl flex-col gap-8">
       <ProgressBar etapaAtual={store.etapa} totalEtapas={TOTAL_ETAPAS} />
 
       {store.etapa === 1 && <StepVolume erros={erros} />}

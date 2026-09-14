@@ -78,9 +78,14 @@ export function CaptacaoLead({ resultado, polimentosMes, onConcluir }: CaptacaoL
         </p>
       </div>
 
-      <MasterTrainers />
+      {/* No celular os Masters aparecem aqui, como faixa. No desktop eles
+          ficam na coluna fixa ao lado do resultado inteiro (ver Resultado). */}
+      <div className="flex flex-col gap-6">
+        <div className="lg:hidden">
+          <MasterTrainers variante="faixa" />
+        </div>
 
-      <form onSubmit={handleEnviar} className="flex flex-col gap-4">
+        <form onSubmit={handleEnviar} className="flex flex-col gap-4">
         <Field label="Seu e-mail">
           <input
             type="email"
@@ -135,14 +140,15 @@ export function CaptacaoLead({ resultado, polimentosMes, onConcluir }: CaptacaoL
           para a gente.
         </p>
 
-        <button
-          type="button"
-          onClick={onConcluir}
-          className="text-center text-sm text-muted underline underline-offset-4"
-        >
-          Pular e ver os revendedores
-        </button>
-      </form>
+          <button
+            type="button"
+            onClick={onConcluir}
+            className="text-center text-sm text-muted underline underline-offset-4"
+          >
+            Pular e ver os revendedores
+          </button>
+        </form>
+      </div>
     </section>
   );
 }

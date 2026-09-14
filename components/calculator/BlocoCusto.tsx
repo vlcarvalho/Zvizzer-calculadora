@@ -1,6 +1,6 @@
 "use client";
 
-import { formatarHoras, formatarMoeda } from "@/lib/format";
+import { formatarHoras, formatarMoeda, formatarPercentual } from "@/lib/format";
 
 interface BlocoCustoProps {
   titulo: string;
@@ -12,6 +12,8 @@ interface BlocoCustoProps {
   horas: number;
   total: number;
   mensagemTotal: string;
+  /** Quanto este custo é menor que o do processo atual (ex.: 0.42 = 42%). */
+  reducaoPercentual?: number;
   destaque?: boolean;
 }
 
@@ -30,6 +32,7 @@ export function BlocoCusto({
   horas,
   total,
   mensagemTotal,
+  reducaoPercentual,
   destaque,
 }: BlocoCustoProps) {
   return (
@@ -64,6 +67,13 @@ export function BlocoCusto({
         >
           {formatarMoeda(total, true)}
         </p>
+
+        {reducaoPercentual !== undefined && reducaoPercentual > 0 && (
+          <p className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent/10 px-4 py-1.5 text-sm font-bold text-accent">
+            <span aria-hidden>▼</span>
+            {formatarPercentual(reducaoPercentual, 0)} menor que o seu processo atual
+          </p>
+        )}
       </footer>
     </section>
   );

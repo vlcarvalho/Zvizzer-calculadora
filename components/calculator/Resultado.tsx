@@ -7,6 +7,7 @@ import { BlocoCusto } from "@/components/calculator/BlocoCusto";
 import { GatilhoEconomia } from "@/components/calculator/GatilhoEconomia";
 import { ComoChegamos } from "@/components/calculator/ComoChegamos";
 import { CaptacaoLead } from "@/components/calculator/CaptacaoLead";
+import { MasterTrainers } from "@/components/calculator/MasterTrainers";
 
 interface ResultadoProps {
   resultado: CalculatorResult;
@@ -39,7 +40,10 @@ export function Resultado({
   const economiaNegativa = resultado.economiaMensal < 0;
 
   return (
-    <div className="flex flex-col gap-8">
+    // Sem `items-start` de propósito: a coluna lateral precisa esticar até o
+    // fim da linha para o `sticky` ter por onde correr.
+    <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_190px] lg:gap-10">
+      <div className="flex flex-col gap-8">
       {/* 1. Custo operacional atual */}
       <BlocoCusto
         titulo="Seu custo operacional hoje"
@@ -68,6 +72,12 @@ export function Resultado({
         horas={resultado.horasZvizzer}
         total={resultado.custoOperacionalZvizzer}
         mensagemTotal="Seu custo de polimento por carro passaria a ser"
+        reducaoPercentual={
+          resultado.custoOperacionalAtual > 0
+            ? (resultado.custoOperacionalAtual - resultado.custoOperacionalZvizzer) /
+              resultado.custoOperacionalAtual
+            : undefined
+        }
       />
 
       {/* 4. O racional por trás do número */}
@@ -151,7 +161,13 @@ export function Resultado({
           alt="Zvizzer"
           className="h-24 w-auto mix-blend-screen"
         />
-      </footer>
+        </footer>
+      </div>
+
+      {/* Coluna fixa do desktop: acompanha a rolagem de todo o resultado. */}
+      <aside className="hidden lg:block">
+        <MasterTrainers variante="coluna" />
+      </aside>
     </div>
   );
 }
