@@ -5,11 +5,13 @@ import { useEffect, useState } from "react";
 interface MasterTrainer {
   id: string;
   nome: string;
-  fotoUrl: string | null;
 }
 
-// A lista aparece duas vezes na tela do resultado (faixa no celular, coluna
-// fixa no desktop). Guardar a resposta evita buscar a mesma coisa duas vezes.
+/** Foto única do time, com os nomes logo abaixo. */
+const FOTO_GRUPO = "/master-trainers/grupo.jpg";
+
+// A lista aparece duas vezes na tela do resultado (celular e desktop).
+// Guardar a resposta evita buscar a mesma coisa duas vezes.
 let cache: MasterTrainer[] | null = null;
 let buscaEmAndamento: Promise<MasterTrainer[]> | null = null;
 
@@ -31,11 +33,10 @@ function buscarTrainers(): Promise<MasterTrainer[]> {
 }
 
 /**
- * Vitrine dos Master Trainers: foto + nome, sem mini-CV.
+ * Vitrine dos Master Trainers: uma foto do time e os nomes embaixo.
  *
- * `variante="coluna"` é a coluna fixa do desktop, que acompanha a rolagem do
- * resultado; `variante="faixa"` é a versão do celular, uma tira horizontal
- * deslizável junto do formulário.
+ * `variante="coluna"` é a coluna do desktop, que acompanha a rolagem do
+ * resultado; `variante="faixa"` é a versão do celular, junto do formulário.
  */
 export function MasterTrainers({
   variante = "faixa",
@@ -68,60 +69,30 @@ export function MasterTrainers({
         Master Trainers oficiais
       </p>
 
+      {/* Foto do time, servida da pasta public. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={FOTO_GRUPO}
+        alt={`Master Trainers Zvizzer: ${trainers.map((t) => t.nome).join(", ")}`}
+        className="w-full rounded-2xl border border-border object-cover"
+      />
+
       <ul
-        className={
-          coluna
-            ? "flex flex-col gap-4"
-            : "-mx-1 flex gap-4 overflow-x-auto px-1 pb-2"
-        }
+        className={`mt-3 flex flex-wrap gap-x-2 gap-y-1 text-xs leading-snug text-muted ${
+          coluna ? "justify-start" : "justify-center"
+        }`}
       >
-        {trainers.map((trainer) => (
-          <li
-            key={trainer.id}
-            className={
-              coluna
-                ? "flex items-center gap-3"
-                : "flex w-20 shrink-0 flex-col items-center gap-2"
-            }
-          >
-            <Avatar nome={trainer.nome} fotoUrl={trainer.fotoUrl} />
-            <span
-              className={`font-medium leading-tight ${
-                coluna ? "text-sm" : "text-center text-[11px]"
-              }`}
-            >
-              {trainer.nome}
-            </span>
+        {trainers.map((trainer, i) => (
+          <li key={trainer.id} className="flex items-center gap-2">
+            <span className="font-medium text-foreground">{trainer.nome}</span>
+            {i < trainers.length - 1 && (
+              <span aria-hidden className="text-accent/60">
+                •
+              </span>
+            )}
           </li>
         ))}
       </ul>
     </div>
-  );
-}
-
-function Avatar({ nome, fotoUrl }: { nome: string; fotoUrl: string | null }) {
-  if (fotoUrl) {
-    return (
-      // Foto vem do admin (pode ser URL externa), por isso <img> e não next/image.
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={fotoUrl}
-        alt={nome}
-        className="h-16 w-16 shrink-0 rounded-full border-2 border-accent/30 object-cover"
-      />
-    );
-  }
-
-  const iniciais = nome
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((p) => p[0]?.toUpperCase())
-    .join("");
-
-  return (
-    <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-2 border-accent/30 bg-surface-2 text-sm font-bold text-muted">
-      {iniciais}
-    </span>
   );
 }

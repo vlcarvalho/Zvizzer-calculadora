@@ -42,7 +42,7 @@ export function Resultado({
   return (
     // Sem `items-start` de propósito: a coluna lateral precisa esticar até o
     // fim da linha para o `sticky` ter por onde correr.
-    <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_190px] lg:gap-10">
+    <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_270px] lg:gap-10">
       <div className="flex flex-col gap-8">
       {/* 1. Custo operacional atual */}
       <BlocoCusto

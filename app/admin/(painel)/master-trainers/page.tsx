@@ -13,7 +13,7 @@ interface MasterTrainer {
   ativo: boolean;
 }
 
-const FORM_VAZIO = { nome: "", fotoUrl: "", miniCv: "", ordem: 0, ativo: true };
+const FORM_VAZIO = { nome: "", miniCv: "", ordem: 0, ativo: true };
 
 export default function AdminMasterTrainersPage() {
   const [trainers, setTrainers] = useState<MasterTrainer[]>([]);
@@ -49,7 +49,6 @@ export default function AdminMasterTrainersPage() {
     setEditandoId(t.id);
     setForm({
       nome: t.nome,
-      fotoUrl: t.fotoUrl ?? "",
       miniCv: t.miniCv,
       ordem: t.ordem,
       ativo: t.ativo,
@@ -96,15 +95,12 @@ export default function AdminMasterTrainersPage() {
       </div>
 
       <p className="text-sm text-muted">
-        Aparecem no fim do resultado da calculadora. Para a foto, coloque o arquivo em{" "}
+        Os nomes aparecem no fim do resultado da calculadora, embaixo da foto do time. A foto é
+        única para todos e fica em{" "}
         <code className="rounded bg-surface px-1.5 py-0.5 text-xs">
-          public/master-trainers/
-        </code>{" "}
-        e informe o caminho (ex.:{" "}
-        <code className="rounded bg-surface px-1.5 py-0.5 text-xs">
-          /master-trainers/pablo.jpg
+          public/master-trainers/grupo.jpg
         </code>
-        ) — ou cole uma URL de imagem.
+        ; para trocá-la, basta substituir esse arquivo.
       </p>
 
       {mostrarForm && (
@@ -117,14 +113,6 @@ export default function AdminMasterTrainersPage() {
               <input
                 value={form.nome}
                 onChange={(e) => setForm({ ...form, nome: e.target.value })}
-                className="w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-foreground focus:border-accent focus:outline-none"
-              />
-            </Field>
-            <Field label="Caminho ou URL da foto">
-              <input
-                value={form.fotoUrl}
-                placeholder="/master-trainers/nome.jpg"
-                onChange={(e) => setForm({ ...form, fotoUrl: e.target.value })}
                 className="w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-foreground focus:border-accent focus:outline-none"
               />
             </Field>
@@ -193,9 +181,6 @@ export default function AdminMasterTrainersPage() {
                   </span>
                 </p>
                 <p className="mt-1 text-xs text-muted">{t.miniCv}</p>
-                <p className="mt-1 text-xs text-muted">
-                  {t.fotoUrl ? t.fotoUrl : "— sem foto —"}
-                </p>
               </div>
               <div className="shrink-0 text-right text-sm">
                 <button
