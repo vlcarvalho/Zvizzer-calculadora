@@ -50,11 +50,21 @@ export default function AdminLeadsPage() {
 
   return (
     <div className="flex flex-col gap-6 pb-16">
-      <div>
-        <h1 className="text-2xl font-bold">Contatos</h1>
-        <p className="mt-1 text-sm text-muted">
-          Deixados voluntariamente no fim da calculadora, com o retrato do cálculo de cada um.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold">Contatos</h1>
+          <p className="mt-1 text-sm text-muted">
+            Deixados voluntariamente no fim da calculadora, com o retrato do cálculo de cada um.
+          </p>
+        </div>
+        {leads.length > 0 && (
+          <a
+            href="/api/admin/leads/export"
+            className="rounded-xl border border-border bg-surface px-4 py-2 text-sm font-semibold text-foreground hover:border-accent"
+          >
+            Baixar CSV
+          </a>
+        )}
       </div>
 
       {leads.length === 0 ? (

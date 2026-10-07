@@ -10,11 +10,11 @@ async function main() {
     create: {
       id: "default",
       compostoNome: "Composto Zvizzer",
-      compostoPreco: 700,
+      compostoPreco: 650,
       compostoPesoG: 750,
       compostoConsumoG: 40,
       boinaNome: "Boina Zvizzer",
-      boinaPreco: 150,
+      boinaPreco: 130,
       boinaQuantidade: 1,
       boinaDurabilidadeCarros: 10,
     },
