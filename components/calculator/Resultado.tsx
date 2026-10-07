@@ -5,7 +5,6 @@ import type { BoinaInput, CalculatorResult, CompostoInput } from "@/lib/calculat
 import type { ZvizzerDisplaySettings } from "@/lib/hooks/use-settings";
 import { formatarHoras, formatarMoeda, formatarPercentual } from "@/lib/format";
 import { BlocoCusto } from "@/components/calculator/BlocoCusto";
-import { GatilhoEconomia } from "@/components/calculator/GatilhoEconomia";
 import { TabelaComparativa } from "@/components/calculator/TabelaComparativa";
 import { ComoChegamos } from "@/components/calculator/ComoChegamos";
 import { CaptacaoLead } from "@/components/calculator/CaptacaoLead";
@@ -25,12 +24,11 @@ interface ResultadoProps {
  * A página final é dividida em três fases:
  * - Fase 1: só o custo operacional atual, fechado (compostos + boinas +
  *   custo/hora), seguido de um convite com a economia que a Zvizzer entrega.
- * - Fase 2 (após o clique no convite), na ordem definida pela Zvizzer:
- *   1. gatilho "nem tudo está perdido" com os ganhos possíveis
- *   2. tabela Atual × Zvizzer (custo, diferença em R$ e em %)
- *   3. como chegamos nesse custo (quantidades + tecnologia)
- *   4. potencial mensal
- *   5. convite para receber conteúdo dos Master Trainers
+ * - Fase 2 (após o clique no convite), começando direto na tabela:
+ *   1. tabela Atual × Zvizzer (custo, diferença em R$ e em %)
+ *   2. como chegamos nesse custo (quantidades + tecnologia)
+ *   3. potencial mensal
+ *   4. convite para receber conteúdo dos Master Trainers
  * - Fase 3 (após o clique nesse convite): captação opcional de contato +
  *   Master Trainers → revendedores, numa tela própria.
  */
@@ -45,12 +43,12 @@ export function Resultado({
 }: ResultadoProps) {
   const economiaNegativa = resultado.economiaMensal < 0;
   const [fase, setFase] = useState<"custo" | "economia" | "contato">("custo");
-  const gatilhoRef = useRef<HTMLDivElement>(null);
+  const tabelaRef = useRef<HTMLDivElement>(null);
 
   // Ao trocar de fase, leva a pessoa até o começo do conteúdo novo.
   useEffect(() => {
     if (fase === "economia") {
-      gatilhoRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      tabelaRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
     if (fase === "contato") {
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -89,7 +87,7 @@ export function Resultado({
       )}
 
       {/* 1. Custo operacional atual */}
-      {fase !== "contato" && (
+      {fase === "custo" && (
       <BlocoCusto
         titulo="Seu custo operacional hoje"
         subtitulo={`Por carro, considerando ${polimentosMes} polimentos/mês`}
@@ -118,15 +116,12 @@ export function Resultado({
 
       {fase === "economia" && (
         <>
-      {/* 2. Gatilho */}
-      <div ref={gatilhoRef} className="scroll-mt-6">
-        <GatilhoEconomia resultado={resultado} />
+      {/* 2. Atual × Zvizzer, item a item, com a diferença em R$ e % */}
+      <div ref={tabelaRef} className="scroll-mt-6">
+        <TabelaComparativa resultado={resultado} />
       </div>
 
-      {/* 3. Atual × Zvizzer, item a item, com a diferença em R$ e % */}
-      <TabelaComparativa resultado={resultado} />
-
-      {/* 4. O racional por trás do número */}
+      {/* 3. O racional por trás do número */}
       <ComoChegamos
         resultado={resultado}
         compostosUsuario={compostosUsuario}
@@ -134,7 +129,7 @@ export function Resultado({
         zvizzer={zvizzerSettings}
       />
 
-      {/* 5. Potencial mensal */}
+      {/* 4. Potencial mensal */}
       <section className="rounded-3xl border border-accent/30 bg-gradient-to-b from-accent/10 to-transparent p-6 text-center">
         <p className="text-sm font-semibold uppercase tracking-widest text-accent">
           Seu potencial por mês
@@ -172,7 +167,7 @@ export function Resultado({
         )}
       </section>
 
-      {/* 6. Convite para a captação de contato (fase 3) */}
+      {/* 5. Convite para a captação de contato (fase 3) */}
       <ConviteContato onClick={() => setFase("contato")} />
 
       <p className="text-center text-xs leading-relaxed text-muted">
