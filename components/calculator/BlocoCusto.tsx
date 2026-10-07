@@ -1,6 +1,6 @@
 "use client";
 
-import { formatarHoras, formatarMoeda, formatarPercentual } from "@/lib/format";
+import { formatarHoras, formatarMoeda } from "@/lib/format";
 
 interface BlocoCustoProps {
   titulo: string;
@@ -12,15 +12,6 @@ interface BlocoCustoProps {
   horas: number;
   total: number;
   mensagemTotal: string;
-  /** Quanto este custo é menor que o do processo atual (ex.: 0.42 = 42%). */
-  reducaoPercentual?: number;
-  /** Ganhos mensais mostrados logo abaixo do percentual de redução. */
-  ganhos?: {
-    economiaMensal: number;
-    horasLiberadasMes: number;
-    faturamentoAdicional: number;
-  };
-  destaque?: boolean;
 }
 
 /**
@@ -38,18 +29,11 @@ export function BlocoCusto({
   horas,
   total,
   mensagemTotal,
-  reducaoPercentual,
-  ganhos,
-  destaque,
 }: BlocoCustoProps) {
   return (
-    <section
-      className={`overflow-hidden rounded-3xl border ${
-        destaque ? "border-accent/40 bg-accent/[0.06]" : "border-border bg-surface/60"
-      }`}
-    >
+    <section className="overflow-hidden rounded-3xl border border-border bg-surface/60">
       <header className="border-b border-inherit px-5 py-4">
-        <h3 className={`font-bold ${destaque ? "text-accent" : "text-foreground"}`}>{titulo}</h3>
+        <h3 className="font-bold text-foreground">{titulo}</h3>
         {subtitulo && <p className="mt-0.5 text-xs text-muted">{subtitulo}</p>}
       </header>
 
@@ -63,51 +47,11 @@ export function BlocoCusto({
         />
       </div>
 
-      <footer
-        className={`px-5 py-5 text-center ${destaque ? "bg-accent/10" : "bg-surface-2/60"}`}
-      >
+      <footer className="bg-surface-2/60 px-5 py-5 text-center">
         <p className="text-xs text-muted">{mensagemTotal}</p>
-        <p
-          className={`mt-1 text-3xl font-black tabular-nums sm:text-4xl ${
-            destaque ? "text-accent" : "text-foreground"
-          }`}
-        >
+        <p className="mt-1 text-3xl font-black tabular-nums text-foreground sm:text-4xl">
           {formatarMoeda(total, true)}
         </p>
-
-        {reducaoPercentual !== undefined && reducaoPercentual > 0 && (
-          <p className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent/10 px-4 py-1.5 text-sm font-bold text-accent">
-            <span aria-hidden>▼</span>
-            {formatarPercentual(reducaoPercentual, 0)} menor que o seu processo atual
-          </p>
-        )}
-
-        {ganhos && (
-          <div className="mt-4 flex flex-col gap-2 border-t border-accent/20 pt-4 text-sm leading-snug">
-            {ganhos.economiaMensal > 0 && (
-              <p>
-                o que representa{" "}
-                <strong className="text-lg font-extrabold tabular-nums text-accent">
-                  {formatarMoeda(ganhos.economiaMensal)}
-                </strong>{" "}
-                de economia por mês!
-              </p>
-            )}
-
-            {ganhos.horasLiberadasMes > 0 && (
-              <p>
-                <strong className="text-lg font-extrabold tabular-nums text-accent">
-                  {formatarHoras(ganhos.horasLiberadasMes)}
-                </strong>{" "}
-                de tempo ganho, que representam{" "}
-                <strong className="text-lg font-extrabold tabular-nums text-accent">
-                  + {formatarMoeda(ganhos.faturamentoAdicional)}
-                </strong>{" "}
-                de faturamento adicional
-              </p>
-            )}
-          </div>
-        )}
       </footer>
     </section>
   );

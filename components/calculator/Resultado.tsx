@@ -1,10 +1,12 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import type { BoinaInput, CalculatorResult, CompostoInput } from "@/lib/calculations";
 import type { ZvizzerDisplaySettings } from "@/lib/hooks/use-settings";
-import { formatarHoras, formatarMoeda } from "@/lib/format";
+import { formatarHoras, formatarMoeda, formatarPercentual } from "@/lib/format";
 import { BlocoCusto } from "@/components/calculator/BlocoCusto";
 import { GatilhoEconomia } from "@/components/calculator/GatilhoEconomia";
+import { TabelaComparativa } from "@/components/calculator/TabelaComparativa";
 import { ComoChegamos } from "@/components/calculator/ComoChegamos";
 import { CaptacaoLead } from "@/components/calculator/CaptacaoLead";
 import { MasterTrainers } from "@/components/calculator/MasterTrainers";
@@ -20,13 +22,15 @@ interface ResultadoProps {
 }
 
 /**
- * Sequência da página final, na ordem definida pela Zvizzer:
- * 1. custo atual fechado (compostos + boinas + custo/hora)
- * 2. gatilho "nem tudo está perdido" com os ganhos possíveis
- * 3. custo com Zvizzer, no mesmo formato
- * 4. como chegamos nesse custo (quantidades + tecnologia)
- * 5. potencial mensal
- * 6. captação de contato + Master Trainers → revendedores
+ * A página final é dividida em duas fases:
+ * - Fase 1: só o custo operacional atual, fechado (compostos + boinas +
+ *   custo/hora), seguido de um convite com a economia que a Zvizzer entrega.
+ * - Fase 2 (após o clique no convite), na ordem definida pela Zvizzer:
+ *   1. gatilho "nem tudo está perdido" com os ganhos possíveis
+ *   2. tabela Atual × Zvizzer (custo, diferença em R$ e em %)
+ *   3. como chegamos nesse custo (quantidades + tecnologia)
+ *   4. potencial mensal
+ *   5. captação de contato + Master Trainers → revendedores
  */
 export function Resultado({
   resultado,
@@ -38,16 +42,34 @@ export function Resultado({
   onNovoCalculo,
 }: ResultadoProps) {
   const economiaNegativa = resultado.economiaMensal < 0;
+  const [mostrarEconomia, setMostrarEconomia] = useState(false);
+  const gatilhoRef = useRef<HTMLDivElement>(null);
+
+  // Ao abrir a segunda fase, leva a pessoa até o começo do conteúdo novo.
+  useEffect(() => {
+    if (mostrarEconomia) {
+      gatilhoRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [mostrarEconomia]);
 
   return (
     // Sem `items-start` de propósito: a coluna lateral precisa esticar até o
     // fim da linha para o `sticky` ter por onde correr.
-    <div className="lg:grid lg:grid-cols-[270px_minmax(0,1fr)] lg:gap-10">
+    <div
+      className={
+        mostrarEconomia
+          ? "lg:grid lg:grid-cols-[270px_minmax(0,1fr)] lg:gap-10"
+          : "mx-auto w-full max-w-2xl"
+      }
+    >
       {/* Coluna fixa do desktop, à esquerda: acompanha a rolagem do resultado.
-          No celular ela some e a foto aparece junto do formulário. */}
-      <aside className="hidden lg:block">
-        <MasterTrainers variante="coluna" />
-      </aside>
+          No celular ela some e a foto aparece junto do formulário. Só entra
+          na segunda fase: a primeira mostra apenas o custo atual. */}
+      {mostrarEconomia && (
+        <aside className="hidden lg:block">
+          <MasterTrainers variante="coluna" />
+        </aside>
+      )}
 
       <div className="flex flex-col gap-8">
       {/* 1. Custo operacional atual */}
@@ -63,33 +85,28 @@ export function Resultado({
         mensagemTotal="Seu custo de polimento por carro atual é de"
       />
 
-      {/* 2. Gatilho */}
-      <GatilhoEconomia resultado={resultado} />
+      {/* Convite para a segunda fase */}
+      {!mostrarEconomia && (
+        <ConviteEconomia
+          economiaPorCarro={resultado.economiaPorCarro}
+          reducaoPercentual={
+            resultado.custoOperacionalAtual > 0
+              ? resultado.economiaPorCarro / resultado.custoOperacionalAtual
+              : 0
+          }
+          onClick={() => setMostrarEconomia(true)}
+        />
+      )}
 
-      {/* 3. Custo com Zvizzer, no mesmo formato */}
-      <BlocoCusto
-        destaque
-        titulo="Com a tecnologia alemã Zvizzer"
-        subtitulo="Mesmo carro, mesmo custo-hora da sua operação"
-        custoCompostos={resultado.custoCompostoZvizzer}
-        custoBoinas={resultado.custoBoinaZvizzer}
-        custoMaoDeObra={resultado.custoMaoDeObraZvizzer}
-        custoHora={resultado.custoHoraEfetivo}
-        horas={resultado.horasZvizzer}
-        total={resultado.custoOperacionalZvizzer}
-        mensagemTotal="Seu custo de polimento por carro passaria a ser"
-        reducaoPercentual={
-          resultado.custoOperacionalAtual > 0
-            ? (resultado.custoOperacionalAtual - resultado.custoOperacionalZvizzer) /
-              resultado.custoOperacionalAtual
-            : undefined
-        }
-        ganhos={{
-          economiaMensal: resultado.economiaMensal,
-          horasLiberadasMes: resultado.horasLiberadasMes,
-          faturamentoAdicional: resultado.capacidadeFaturamento,
-        }}
-      />
+      {mostrarEconomia && (
+        <>
+      {/* 2. Gatilho */}
+      <div ref={gatilhoRef} className="scroll-mt-6">
+        <GatilhoEconomia resultado={resultado} />
+      </div>
+
+      {/* 3. Atual × Zvizzer, item a item, com a diferença em R$ e % */}
+      <TabelaComparativa resultado={resultado} />
 
       {/* 4. O racional por trás do número */}
       <ComoChegamos
@@ -173,8 +190,58 @@ export function Resultado({
           className="h-24 w-auto mix-blend-screen"
         />
         </footer>
+        </>
+      )}
       </div>
     </div>
+  );
+}
+
+/**
+ * Ponte da primeira para a segunda fase. Os números vêm do cálculo daquela
+ * pessoa com o processo Zvizzer (economia por polimento, em R$ e em %). Se não
+ * houver economia, o texto muda em vez de prometer o que não existe.
+ */
+function ConviteEconomia({
+  economiaPorCarro,
+  reducaoPercentual,
+  onClick,
+}: {
+  economiaPorCarro: number;
+  reducaoPercentual: number;
+  onClick: () => void;
+}) {
+  const temEconomia = economiaPorCarro > 0;
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="group rounded-3xl border border-accent/40 bg-gradient-to-b from-accent/[0.12] to-transparent p-6 text-center transition-all hover:border-accent active:scale-[0.99]"
+    >
+      <span className="block text-lg font-bold leading-snug">Gostou de saber o seu custo?</span>
+      <span className="mt-2 block text-base leading-relaxed text-muted">
+        {temEconomia ? (
+          <>
+            Saiba como economizar{" "}
+            <strong className="font-extrabold tabular-nums text-accent">
+              {formatarMoeda(economiaPorCarro, true)}
+            </strong>{" "}
+            ou{" "}
+            <strong className="font-extrabold tabular-nums text-accent">
+              {formatarPercentual(reducaoPercentual, 0)}
+            </strong>{" "}
+            no seu polimento!
+          </>
+        ) : (
+          "Veja como fica o mesmo polimento com a tecnologia alemã Zvizzer!"
+        )}
+      </span>
+      <span className="mt-4 inline-flex items-center gap-2 rounded-2xl bg-accent px-6 py-3 text-base font-semibold text-accent-foreground group-hover:bg-accent-strong">
+        Clique aqui!
+        <span aria-hidden>→</span>
+      </span>
+    </button>
   );
 }
 

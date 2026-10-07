@@ -9,8 +9,9 @@ export interface VolumePrecoState {
   precoMedioPolimento: number;
   /** Horas do polimento atual (decimal — ex.: 5,5 = 5h30). */
   horas: number;
-  /** Quantas pessoas polem o mesmo carro ao mesmo tempo (1 a 4). Divide
-   * proporcionalmente o tempo do processo Zvizzer. */
+  /** Quantas pessoas polem o mesmo carro ao mesmo tempo (1 a 4). É só um
+   * dado informado: não entra em nenhuma conta de tempo (o tempo informado já
+   * é o da equipe inteira). */
   profissionaisSimultaneos: number;
 }
 
