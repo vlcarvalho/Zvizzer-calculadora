@@ -68,16 +68,6 @@ export function CaptacaoLead({ resultado, polimentosMes, onConcluir }: CaptacaoL
 
   return (
     <section className="flex flex-col gap-6 rounded-3xl border border-accent/30 bg-gradient-to-b from-accent/[0.08] to-transparent p-6">
-      <div className="text-center">
-        <h3 className="text-xl font-bold leading-snug">
-          Quer aprender com os Master Trainers oficiais da marca, certificados na Europa?
-        </h3>
-        <p className="mt-2 text-sm leading-relaxed text-muted">
-          Deixe seu e-mail e WhatsApp para receber dicas exclusivas — e este diagnóstico com a
-          sua realidade, para consultar quando quiser.
-        </p>
-      </div>
-
       {/* No celular os Masters aparecem aqui, como faixa. No desktop eles
           ficam na coluna fixa ao lado do resultado inteiro (ver Resultado). */}
       <div className="flex flex-col gap-6">
