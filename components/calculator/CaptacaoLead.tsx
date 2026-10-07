@@ -11,13 +11,13 @@ import { MasterTrainers } from "@/components/calculator/MasterTrainers";
 interface CaptacaoLeadProps {
   resultado: CalculatorResult;
   polimentosMes: number;
-  /** Chamado depois de enviar (ou de pular) — leva o usuário aos revendedores. */
+  /** Chamado depois de enviar o contato — leva o usuário aos revendedores. */
   onConcluir: () => void;
 }
 
 /**
- * Captação opcional de contato no fim do resultado. Preencher não é
- * obrigatório: nos dois caminhos o usuário segue para os revendedores.
+ * Captação de contato no fim do resultado. E-mail, WhatsApp e o aceite são
+ * obrigatórios para seguir para os revendedores.
  */
 export function CaptacaoLead({ resultado, polimentosMes, onConcluir }: CaptacaoLeadProps) {
   const [email, setEmail] = useState("");
@@ -130,13 +130,6 @@ export function CaptacaoLead({ resultado, polimentosMes, onConcluir }: CaptacaoL
           para a gente.
         </p>
 
-          <button
-            type="button"
-            onClick={onConcluir}
-            className="text-center text-sm text-muted underline underline-offset-4"
-          >
-            Pular e ver os revendedores
-          </button>
         </form>
       </div>
     </section>
