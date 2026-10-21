@@ -126,6 +126,9 @@ model AnalyticsEvent {
   reseller   Reseller? @relation(fields: [resellerId], references: [id])
   estado     String?
   cidade     String?
+  /// De onde veio o acesso, quando for um canal conhecido (ex.: "aula", para
+  /// quem entra pelo link divulgado na comunidade). Vazio = acesso comum.
+  origem     String?
   timestamp  DateTime @default(now())
 
   @@index([eventName])

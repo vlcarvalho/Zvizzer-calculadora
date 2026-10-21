@@ -23,6 +23,11 @@ const eventSchema = z.object({
   resellerId: z.string().optional(),
   estado: z.string().max(2).optional(),
   cidade: z.string().max(120).optional(),
+  origem: z
+    .string()
+    .max(30)
+    .regex(/^[a-z0-9_-]+$/)
+    .optional(),
 });
 
 /**
@@ -49,6 +54,7 @@ export async function POST(request: Request) {
         resellerId: data.resellerId,
         estado: data.estado,
         cidade: data.cidade,
+        origem: data.origem,
       },
     });
 
@@ -59,7 +65,9 @@ export async function POST(request: Request) {
       });
     }
 
-    if (data.eventName === "whatsapp_clicked") {
+    // O funil da calculadora só conta quem passou por ela: cliques vindos de
+    // um canal próprio (ex.: link das aulas) são medidos à parte, pela origem.
+    if (data.eventName === "whatsapp_clicked" && !data.origem) {
       await prisma.analyticsSession.update({
         where: { sessionId: data.sessionId },
         data: { whatsappClicked: true },

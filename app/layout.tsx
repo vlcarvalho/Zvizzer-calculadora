@@ -12,6 +12,7 @@ const inter = Inter({
 // Título e descrição propositalmente neutros: a ferramenta se apresenta como
 // independente, sem viés de marca (a marca aparece só no resultado).
 export const metadata: Metadata = {
+  metadataBase: new URL("https://www.custodopolimento.com.br"),
   title: "Calculadora de Custo Operacional de Polimento",
   description:
     "Descubra o custo real do seu polimento por carro e quanto sua operação de estética automotiva pode economizar.",

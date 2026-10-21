@@ -12,16 +12,41 @@ export async function GET() {
   const sessao = await obterSessaoAdmin();
   if (!sessao) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
-  const [totalVisitas, totalIniciaram, totalConcluiram, totalClicaramWhatsapp] =
-    await Promise.all([
-      prisma.analyticsSession.count(),
-      prisma.analyticsEvent.groupBy({
+  // "Visitas" = quem abriu a calculadora. Quem só entrou pelo link das aulas
+  // tem sessão, mas não passou por ela — por isso não conta no funil.
+  const [
+    totalVisitas,
+    totalIniciaram,
+    totalConcluiram,
+    totalClicaramWhatsapp,
+    aulaAcessaram,
+    aulaCliquesTotal,
+    aulaPessoasClicaram,
+  ] = await Promise.all([
+    prisma.analyticsEvent
+      .groupBy({ by: ["sessionId"], where: { eventName: "calculator_view" } })
+      .then((r) => r.length),
+    prisma.analyticsEvent
+      .groupBy({ by: ["sessionId"], where: { eventName: "calculator_start" } })
+      .then((r) => r.length),
+    prisma.analyticsSession.count({ where: { completedCalculation: true } }),
+    prisma.analyticsSession.count({ where: { whatsappClicked: true } }),
+    // Link da comunidade (origem "aula"): pessoas que abriram a lista,
+    // cliques no WhatsApp das lojas e quantas pessoas distintas clicaram.
+    prisma.analyticsEvent
+      .groupBy({
         by: ["sessionId"],
-        where: { eventName: "calculator_start" },
-      }).then((r) => r.length),
-      prisma.analyticsSession.count({ where: { completedCalculation: true } }),
-      prisma.analyticsSession.count({ where: { whatsappClicked: true } }),
-    ]);
+        where: { eventName: "reseller_list_viewed", origem: "aula" },
+      })
+      .then((r) => r.length),
+    prisma.analyticsEvent.count({ where: { eventName: "whatsapp_clicked", origem: "aula" } }),
+    prisma.analyticsEvent
+      .groupBy({
+        by: ["sessionId"],
+        where: { eventName: "whatsapp_clicked", origem: "aula" },
+      })
+      .then((r) => r.length),
+  ]);
 
   const cliquesPorRevendedorRaw = await prisma.analyticsEvent.groupBy({
     by: ["resellerId"],
@@ -65,6 +90,12 @@ export async function GET() {
       percentualIniciaram: percentual(totalIniciaram, totalVisitas),
       percentualConcluiram: percentual(totalConcluiram, totalVisitas),
       percentualClicaramWhatsapp: percentual(totalClicaramWhatsapp, totalVisitas),
+    },
+    aulas: {
+      acessaram: aulaAcessaram,
+      pessoasClicaram: aulaPessoasClicaram,
+      cliquesTotal: aulaCliquesTotal,
+      percentualClicaram: percentual(aulaPessoasClicaram, aulaAcessaram),
     },
     cliquesPorRevendedor,
   });

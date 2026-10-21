@@ -13,6 +13,13 @@ interface Funil {
   percentualClicaramWhatsapp: number;
 }
 
+interface Aulas {
+  acessaram: number;
+  pessoasClicaram: number;
+  cliquesTotal: number;
+  percentualClicaram: number;
+}
+
 interface CliqueRevendedor {
   resellerId: string | null;
   nome: string;
@@ -23,6 +30,7 @@ interface CliqueRevendedor {
 
 export default function AdminDashboardPage() {
   const [funil, setFunil] = useState<Funil | null>(null);
+  const [aulas, setAulas] = useState<Aulas | null>(null);
   const [cliques, setCliques] = useState<CliqueRevendedor[]>([]);
   const [carregando, setCarregando] = useState(true);
 
@@ -31,6 +39,7 @@ export default function AdminDashboardPage() {
       .then((r) => r.json())
       .then((data) => {
         setFunil(data.funil);
+        setAulas(data.aulas ?? null);
         setCliques(data.cliquesPorRevendedor ?? []);
       })
       .finally(() => setCarregando(false));
@@ -71,6 +80,34 @@ export default function AdminDashboardPage() {
           </div>
         ))}
       </div>
+
+      {aulas && (
+        <div>
+          <h2 className="text-lg font-bold">Link das aulas (comunidade)</h2>
+          <p className="mb-4 mt-1 text-sm text-muted">
+            Quem entra direto pelo link divulgado depois de cada aula. Não entra no funil acima.
+          </p>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div className="rounded-2xl border border-border bg-surface p-5">
+              <p className="text-xs text-muted">Pessoas que abriram a lista</p>
+              <p className="mt-2 text-3xl font-black tabular-nums">{aulas.acessaram}</p>
+            </div>
+            <div className="rounded-2xl border border-border bg-surface p-5">
+              <p className="text-xs text-muted">Pessoas que clicaram no WhatsApp</p>
+              <p className="mt-2 text-3xl font-black tabular-nums">{aulas.pessoasClicaram}</p>
+              {aulas.acessaram > 0 && (
+                <p className="mt-1 text-xs text-accent">
+                  {formatarPercentual(aulas.percentualClicaram)} de quem abriu
+                </p>
+              )}
+            </div>
+            <div className="rounded-2xl border border-border bg-surface p-5">
+              <p className="text-xs text-muted">Cliques no WhatsApp (total)</p>
+              <p className="mt-2 text-3xl font-black tabular-nums">{aulas.cliquesTotal}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div>
         <h2 className="mb-4 text-lg font-bold">Cliques por revendedor</h2>

@@ -43,6 +43,8 @@ export interface DetalhesEvento {
   resellerId?: string;
   estado?: string;
   cidade?: string;
+  /** Canal de origem do acesso (ex.: "aula"). Vazio = acesso comum. */
+  origem?: string;
 }
 
 export function track(eventName: EventoAnalytics, detalhes: DetalhesEvento = {}) {

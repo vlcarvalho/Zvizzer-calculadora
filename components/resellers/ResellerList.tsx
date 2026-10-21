@@ -31,9 +31,11 @@ interface Reseller {
 
 interface ResellerListProps {
   dadosMensagem?: DadosMensagemWhatsapp;
+  /** Canal de origem do acesso (ex.: "aula"), registrado nos eventos. */
+  origem?: string;
 }
 
-export function ResellerList({ dadosMensagem }: ResellerListProps) {
+export function ResellerList({ dadosMensagem, origem }: ResellerListProps) {
   const [resellers, setResellers] = useState<Reseller[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [busca, setBusca] = useState("");
@@ -45,8 +47,8 @@ export function ResellerList({ dadosMensagem }: ResellerListProps) {
       .then((r) => r.json())
       .then((data) => setResellers(data.resellers ?? []))
       .finally(() => setCarregando(false));
-    track("reseller_list_viewed");
-  }, []);
+    track("reseller_list_viewed", { origem });
+  }, [origem]);
 
   const estados = useMemo(
     () => Array.from(new Set(resellers.map((r) => r.estado))).sort(),
@@ -68,8 +70,8 @@ export function ResellerList({ dadosMensagem }: ResellerListProps) {
   }, [resellers, estadoFiltro, cidadeFiltro, busca]);
 
   const handleWhatsappClick = useCallback((r: Reseller) => {
-    track("whatsapp_clicked", { resellerId: r.id, estado: r.estado, cidade: r.cidade });
-  }, []);
+    track("whatsapp_clicked", { resellerId: r.id, estado: r.estado, cidade: r.cidade, origem });
+  }, [origem]);
 
   return (
     <div className="flex flex-col gap-6">
